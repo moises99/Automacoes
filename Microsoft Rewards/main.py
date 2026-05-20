@@ -46,7 +46,7 @@ else:
     #Print nas manchetes e concatena as mesma com o link
     print(f'Total de noticias: {len(titulo_noticia)}')
     for pos,titulo in enumerate(titulo_noticia):
-        print(f'Notícia {pos} = Manchete: {titulo}\nLINK: https://www.bing.com/search?q={lista_noticia_formatada[pos]}&form=IPRV10')
+        print(f'Notícia {pos+1} = Manchete: {titulo}\nLINK: https://www.bing.com/search?q={lista_noticia_formatada[pos]}&form=IPRV10')
         print()
         driver.get(f'https://www.bing.com/search?q={lista_noticia_formatada[pos]}&form=IPRV10')
         sl(3)
