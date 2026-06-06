@@ -1,2 +1,2 @@
 def texto_personalizado(texto)->str:
-    return f'{texto:=^50}'
+    return f'{texto:=^100}'

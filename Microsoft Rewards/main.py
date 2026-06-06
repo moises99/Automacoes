@@ -3,16 +3,24 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.edge.options import Options
 from time import sleep as sl
 import datetime as dt
-from pontos import verifica_pontos
+from pontos import verifica_pontos,verifica_membro
+from funcoes import chave
 from personalizacao import texto_personalizado
-import secrets
 
 
-#Verifica a quantida de pontos antes de iniciar a rotina
-
-pontos_atuais = verifica_pontos("https://rewards.bing.com/dashboard?ref=pin&OCID=PINREW" , "//div[@class='flex items-center gap-2']")
-pontos_mais_30 = pontos_atuais + 30
-print(texto_personalizado(f'PONTOS ATUAIS: {pontos_atuais}'))
+#Verifica a quantida de pontos e nivél de membro antes de iniciar a rotina
+try:
+    pontos_atuais = verifica_pontos("https://rewards.bing.com/dashboard?ref=pin&OCID=PINREW" , "//div[@class='flex']")
+    pontos_membro =  verifica_membro("https://rewards.bing.com/dashboard?ref=pin&OCID=PINREW" , "//p[@class='rounded-ctrlBadgeCorner px-2 py-1 text-globalCaption1Strong text-rewardsLevelBadgeFg bg-rewardsGoldBadgeBg']")
+    seus_pontos_dia = pontos_atuais + pontos_membro
+    print(texto_personalizado(f'PONTOS ATUAIS: {pontos_atuais} '))
+    if pontos_membro == 60:
+        print(texto_personalizado(F' VOCÊ É MEMBRO OURO COM {pontos_membro} PONTOS DIARIOS DE PESQUISAS '))
+    elif pontos_membro == 30:
+        print(texto_personalizado(F' VOCÊ É MEMBRO PRATA COM {pontos_membro} PONTOS DIARIOS DE PESQUISAS '))
+except:
+    print(f'Algo deu errado!!!'.upper())
+    exit()
 
 try:
     try:
@@ -31,11 +39,10 @@ try:
 
     #Cria a conexao com o site *Necessário estar logado
     print(texto_personalizado(f'Iniciado rotina: {nome_arquivo}.'.upper()))
-    url = 'https://www.bing.com/news/?form=ml11z9&crea=ml11z9&wt.mc_id=ml11z9&rnoreward=1&rnoreward=1'
     driver_edge = Options()
     driver_edge.add_argument("--headless=new")
     driver = webdriver.Edge(options=driver_edge)
-    driver.get(url)
+    driver.get('https://www.bing.com/news/?form=ml11z9&crea=ml11z9&wt.mc_id=ml11z9&rnoreward=1&rnoreward=1')
     print(texto_personalizado('Pagina acessada'.upper()))
 
 
@@ -72,41 +79,43 @@ try:
     #Visualização e pesquisa
     for pos,titulo in enumerate(titulo_noticia):
         #Gera um ID aleatorio para concatenar a url de pesquisa
-        chave = secrets.token_hex(26).upper()
+        chave_id = chave()
         print()
-        if pos == 0:
-            try:
-                with open(f'{arquivo_log}.txt','a',encoding="utf-8") as arquivo:
-                    arquivo.writelines(f'\nManchete {pos+1}: {titulo}\nID:{chave}\nLink: https://www.bing.com/search?q={lista_noticia_formatada[pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={lista_noticia_formatada[pos]}&sc=15-7&sk=&cvid={chave}\n')
-                    print()
-            except FileNotFoundError as e:
-                print(f'Arquivo ou diretorio nao encontrado ,verifique o caminho {local_arquivo}.\nSeguiremos com as pesquisas')
+        
+        try:
+            with open(f'{arquivo_log}.txt','a',encoding="utf-8") as arquivo:
+                arquivo.writelines(f'\nManchete {pos+1}: {titulo}\nID:{chave_id}\nLink: https://www.bing.com/search?q={lista_noticia_formatada[pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={lista_noticia_formatada[pos]}&sc=15-7&sk=&cvid={chave_id}\n')
+                print()
+        except FileNotFoundError as e:
+            print(f'Arquivo ou diretorio nao encontrado ,verifique o caminho {local_arquivo}.\nSeguiremos com as pesquisas')
             print()
-        print(f'Notícia {pos+1} = Manchete: {titulo}\nID:{chave}\nLINK: https://www.bing.com/search?q={lista_noticia_formatada[pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={lista_noticia_formatada[pos]}&sc=15-7&sk=&cvid={chave}')
-        driver.get(f'https://www.bing.com/search?q={lista_noticia_formatada[pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={lista_noticia_formatada[pos]}&sc=15-7&sk=&cvid={chave}')
-        sl(3)
+        print(f'Notícia {pos+1} = Manchete: {titulo}\nID:{chave_id}\nLINK: https://www.bing.com/search?q={lista_noticia_formatada[pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={lista_noticia_formatada[pos]}&sc=15-7&sk=&cvid={chave_id}')
+        driver.get(f'https://www.bing.com/search?q={lista_noticia_formatada[pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={lista_noticia_formatada[pos]}&sc=15-7&sk=&cvid={chave_id}')
+        sl(5)
         
         #Verifica na posição 14 se o limite de pontos foram atingidos
-        if pos == 30:
-            pontos_atuallizados = verifica_pontos("https://rewards.bing.com/dashboard?ref=pin&OCID=PINREW" , "//div[@class='flex items-center gap-2']")
-            maximo_ponto =  pontos_atuallizados >= pontos_mais_30
-            print(f'PONTOS ATUAIS: {pontos_atuallizados} / {pontos_mais_30}')
+        if pos == 20:
+            pontos_atuallizados =pontos_atuais = verifica_pontos("https://rewards.bing.com/dashboard?ref=pin&OCID=PINREW" , "//div[@class='flex']")
+            print(f'{pontos_atuallizados} / {seus_pontos_dia} / ')
+            maximo_ponto =  pontos_atuallizados >= seus_pontos_dia
+            print(f'PONTOS ATUAIS: {pontos_atuallizados} / {seus_pontos_dia}')
             if maximo_ponto:
                 print(f'Parabéns você atingiu o numero máximo de pontos: {pontos_atuallizados}!!!\nVolte amanão para ganhar novos pontos.')
                 driver.quit()
                 break
         #Verifica na posição 30 se o limite de pontos foram atingidos, se não ele ira fazer uma verificção a cada pesquisa.
-        elif pos >= 50:
-            pontos_atuallizados = verifica_pontos("https://rewards.bing.com/dashboard?ref=pin&OCID=PINREW" , "//div[@class='flex items-center gap-2']")
-            maximo_ponto = pontos_atuallizados >= pontos_mais_30
-            print(f'PONTOS ATUAIS: {pontos_atuallizados} / {pontos_mais_30}')
+        if pos >= 30:
+            pontos_atuallizados = pontos_atuais = verifica_pontos("https://rewards.bing.com/dashboard?ref=pin&OCID=PINREW" , "//div[@class='flex']")
+            print(f'{pontos_atuallizados} / {seus_pontos_dia} / ')
+            maximo_ponto = pontos_atuallizados >= seus_pontos_dia
+            print(f'PONTOS ATUAIS: {pontos_atuallizados} / {seus_pontos_dia}')
             #Se o limite de pontos foram atingido finaliza a rotina 
             if maximo_ponto:
                 print(f'Parabéns você atingiu o numero máximo de pontos: {pontos_atuallizados}!!!\nVolte amanhão para ganhar novos pontos.')
                 driver.quit()
                 break
 
-
+    print(texto_personalizado(f'Total de noticias: {len(titulo_noticia)} '.upper()))            
     driver.quit()
 
 
