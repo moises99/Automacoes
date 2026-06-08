@@ -3,14 +3,13 @@ from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
 from personalizacao import texto_personalizado
 
-
 #Rerorna a quantidade de pontos do usuário
-def verifica_pontos(minha_url,meuxpath)->int:
+def verifica_pontos(link_pagina , xpath_pontos) -> int:
     '''
     Funcão responavél por coletar os pontos atuais.
     Necessário passar dois parametros:
-    minha_url: url do sua pgina logada
-    meuxpath: o caminho do xpath
+    link_pagina: url do sua pgina logada
+    xpath_pontos: o caminho do xpath dos pontos
     '''
     
     try:
@@ -19,14 +18,12 @@ def verifica_pontos(minha_url,meuxpath)->int:
         driver_segundo_plano = Options()
         driver_segundo_plano.add_argument("--headless=new")
         driver_pontos = webdriver.Edge(options=driver_segundo_plano)
-        driver_pontos.get(minha_url)
-        pontos = driver_pontos.find_element(By.XPATH,meuxpath)
-        membro = driver_pontos.find_element(By.XPATH,meuxpath)
+        driver_pontos.get(link_pagina)
+        pontos = driver_pontos.find_element(By.XPATH,xpath_pontos)
         #converte o float para int
         pontos = pontos.text.replace('.','')
-        membro = membro.text.lower()
-        pontos = int(pontos)
         driver_pontos.quit()
+        pontos = int(pontos)
         return pontos
     except IndentationError as e:
         print(f'Erro de identação {e}')
@@ -37,14 +34,13 @@ def verifica_pontos(minha_url,meuxpath)->int:
     except NameError as e:
         print(f'Variavel nao definida: {e}')
 
-
 #Rerorna a quantidade de pontos do usuário
-def verifica_membro(minha_url,meuxpath) -> int:
+def verifica_membro(link_pagina,xpath_membro) -> int:
     '''
     Funcão responavél verificar o nivel de membro.
     Necessário passar dois parametros:
-    minha_url: url do sua pgina logada
-    meuxpath: o caminho do xpath
+    link_pagina: url do sua pgina logada
+    xpath_membro: o caminho do xpath nivel (Ouro,Prata etc...)
     '''
     try:
         print(texto_personalizado('Iniciado a verificação de nivel Membro'.upper()))
@@ -52,14 +48,14 @@ def verifica_membro(minha_url,meuxpath) -> int:
         driver_segundo_plano = Options()
         driver_segundo_plano.add_argument("--headless=new")
         driver_membro = webdriver.Edge(options=driver_segundo_plano)
-        driver_membro.get(minha_url)
-        membro = driver_membro.find_element(By.XPATH,meuxpath)
+        driver_membro.get(link_pagina)
+        membro = driver_membro.find_element(By.XPATH,xpath_membro)
         membro = membro.text
         driver_membro.quit()
-        if membro == 'Membro Ouro':
-            membro = 60
+        if membro == 'Gold':
+            membro = 54
             return membro
-        if membro == 'Membro Prata':
+        if membro == 'Silver':
             membro = 30
             return membro
     except IndentationError as e:
@@ -69,5 +65,4 @@ def verifica_membro(minha_url,meuxpath) -> int:
     except KeyboardInterrupt as e:
         print(f'Interrompido pelo usuário: {e}')
     except NameError as e:
-        print(f'Variavel nao definida: {e}')
-
+        print(f'Variavel no definida: {e}')
