@@ -52,7 +52,7 @@ def func_principal():
         except FileNotFoundError:
             print(f'Arquivo ou diretório não encontrado, verifique o caminho {arquivo_log}.\nSeguiremos com as pesquisas')
             print()
-        #driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}')
+        driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}')
         load(0.05,f'Manchete {pos+1}: {titulo} ')
         
         #Bloco responsável por verificar se o limite de pontos na posição 30 foram atingido e na posição 50 ou maior foram atingido, se não, verificará a cada pesquisa.
@@ -64,10 +64,8 @@ def func_principal():
                     pontos_atuallizados = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
                     progresso.update(tarefa,advance=95,description="Pontos atualizado...")
                     break
-            #pontos_atuallizados +=60
             maximo_ponto =  pontos_atuallizados >= meu_maximo_de_pontos
             pontos_faltando = meu_maximo_de_pontos - pontos_atuallizados
-            # print(f'PONTOS ATUAIS: {pontos_atuallizados} / {meu_maximo_de_pontos}')
             if maximo_ponto:
                 print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
                 print(resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais,pontos_atuallizados,pos))
