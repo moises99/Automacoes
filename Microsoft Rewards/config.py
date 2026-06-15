@@ -1,6 +1,8 @@
 #Definição das varias globais
 import secrets
 import datetime as dt
+
+
 LINKS = {
     "home_page" : "https://rewards.bing.com/dashboard",
     "msn_news"  : "https://www.bing.com/news/?form=ml11z9&crea=ml11z9&wt.mc_id=ml11z9&rnoreward=1&rnoreward=1",
