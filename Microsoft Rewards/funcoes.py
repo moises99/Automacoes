@@ -16,7 +16,7 @@ def func_principal():
     '''
     print(texto_personalizado(' Inicializando... '.upper()))
     arquivo_log = gera_txt()
-    load(0.01)
+    load(0.02)
 
     #Bloco responsável por executar algumas funções com barra de progresso
     with Progress() as progresso:

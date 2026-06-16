@@ -25,5 +25,5 @@ VARIAVEIS = {
     "local_arquivo": 'D:\\py\\Projeto Automacao\\logs_pesquisa\\',
     "nome_arquivo" : f'manchete_{dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}',
     "controle_pontos" : 0,
-    "controle_tres_pontos" : 0,
+    "controle_tres_pontos" : 0
     }
