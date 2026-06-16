@@ -12,7 +12,6 @@ LINKS = {
 XPATH_PAGINA = {
     "membro" : "//span[@class='font-semibold']",
     "pontos" : "//p[@class='text-pageHeader']",
-
     }
 
 
@@ -25,5 +24,6 @@ VARIAVEIS = {
     "data_hora" : dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S"),
     "local_arquivo": 'D:\\py\\Projeto Automacao\\logs_pesquisa\\',
     "nome_arquivo" : f'manchete_{dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}',
-    "controle_pontos" : 0
+    "controle_pontos" : 0,
+    "controle_tres_pontos" : 0,
     }

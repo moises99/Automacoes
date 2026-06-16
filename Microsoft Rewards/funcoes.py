@@ -9,7 +9,6 @@ from rich.progress import Progress, track
 from rich import print
 from rich.table import Table
 from rich.panel import Panel
-
 #Responsável por executar as funcionalidades da página
 def func_principal():
     '''
@@ -43,6 +42,7 @@ def func_principal():
     driver_edge = Options()
     driver_edge.add_argument("--headless=new")
     driver = webdriver.Edge(options=driver_edge)
+
     #Bloco respondavel por executar as pesquisar e gravar as informações no arquivo de texto
     for pos,titulo in track(enumerate(noticias_func[0]),description="[purple]Pesquisando...",transient=True):
         try:
@@ -53,9 +53,11 @@ def func_principal():
             print(f'Arquivo ou diretório não encontrado, verifique o caminho {arquivo_log}.\nSeguiremos com as pesquisas')
             print()
         driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}')
-        load(0.05,f'Manchete {pos+1}: {titulo} ')
+        load(0.01,f'Manchete {pos+1}: {titulo} ')
+        
         #Bloco responsável por verificar se o limite de pontos na posição 30 foram atingido e na posição 50 ou maior foram atingido, se não, verificará a cada pesquisa.
-        if pos == 30 or pos >= 50:
+        VARIAVEIS["controle_pontos"] += 3
+        if VARIAVEIS["controle_pontos"] == 60:
             with Progress() as progresso:
                 tarefa = progresso.add_task(description="")
                 while True:
@@ -67,24 +69,20 @@ def func_principal():
             pontos_faltando = meu_maximo_de_pontos - pontos_atuallizados
             if maximo_ponto:
                 print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
-                print(resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais,pontos_atuallizados,pos))
                 break
             else:
-                print()
+                VARIAVEIS["controle_pontos"] = pontos_nivel_membro - pontos_faltando
                 print(texto_personalizado(f' Necessários mais {pontos_faltando} pontos').upper())
-            
-            #Miau
             if pontos_faltando == 3:
-                VARIAVEIS["controle_pontos"] +=1
-                print(f'Tentativa: {VARIAVEIS["controle_pontos"]}')
-                if VARIAVEIS["controle_pontos"] == 5:
+                VARIAVEIS["controle_tres_pontos"] +=1
+                print(texto_personalizado(f'Tentativa: {VARIAVEIS["controle_tres_pontos"]}/3'))
+                if VARIAVEIS["controle_tres_pontos"] == 3:
                     print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
-                    print(resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais,pontos_atuallizados,pos))
                     break
 
-
-    print(texto_personalizado(f'Rotina finalizada').upper())
+    print(resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais,pontos_atuallizados,pos))
     print(texto_personalizado(f'ARQUIVO SALVO EM {arquivo_log}'))
+    print(texto_personalizado(f'Rotina finalizada').upper().center(120))
     driver.quit()
 
 
@@ -173,7 +171,6 @@ def gera_txt():
         print()
     return arquivo_log
 
-
 #Cria a conexao com o site *Necessário estar logado e Rolagem automatica da Pagina
 def driver_edge():
     '''
@@ -189,7 +186,6 @@ def driver_edge():
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
     return driver
-
 
 #Coleta o título das noticias
 def coleta_noticias():
@@ -223,15 +219,13 @@ def load(tempo = 0.02,texto ="[green]Processando..."):
             time.sleep(tempo)
 
 
-
-def resumo(nivel_membro=0,pontos_membro=0,pontos=0,pontos_atualizados=0,total_pesquisas=0):
+def resumo(nivel_membro,pontos_membro,pontos,pontos_atualizados,total_pesquisas):
     table = Table(expand=True)
     table.add_column("Nivel de Membro", justify="center")
     table.add_column("Pontos de Membro", justify="center")
     table.add_column("Pontos Anteriores", justify="center")
     table.add_column("Pontos Atualizados", justify="center")
-    table.add_column("T. de Pesquisas Realizadas", justify="center")
+    table.add_column("N. de Pesquisas Realizadas", justify="center")
     table.add_row(str(nivel_membro),str(pontos_membro),str(pontos),str(pontos_atualizados),str(total_pesquisas))
     painel = Panel(table,title=texto_personalizado("Resumo").upper(),width=120,subtitle="Volte amanhão para ganhar novos pontos",style="bold")
     return painel
-
