@@ -253,7 +253,7 @@ def verifica_pontos(link_pagina , xpath_pontos):
 #Reinvidica os pontos dosponiveis
 def reivindicar():
     '''
-    Reinvidica os pontos dosponiveis
+    Reivindica os pontos dosponiveis
     '''
     with Progress() as progresso:
         tarefa_reivindicar = progresso.add_task(description="[yellow]Reivindicando pontos...")
