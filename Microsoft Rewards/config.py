@@ -10,8 +10,10 @@ LINKS = {
 
 
 XPATH_PAGINA = {
-    "membro" : "//span[@class='font-semibold']",
-    "pontos" : "//p[@class='text-pageHeader']",
+    "membro"             : "//span[@class='font-semibold']",
+    "pontos"             : "//p[@class='text-pageHeader']",
+    "reivindicar"        : "//button[@class='group/ctrl text-start cursor-pointer disabled:cursor-default outline-0 outline-ctrlFocusOuterStroke outline-offset-(--spacing-ctrlFocusInnerStrokeWidth) data-focus-visible:outline-ctrlFocusOuterStrokeWidth w-full rounded-cornerCardDefault']",
+    "ganhar_mais_pontos" :  "//span[@class='relative px-paddingCtrlTextSide inline-flex items-center pt-paddingCtrlLgTextTop pb-paddingCtrlLgTextBottom gap-gapBetweenContentXSmall']"
     }
 
 
@@ -21,9 +23,9 @@ CHAVE_ID = {
 
 
 VARIAVEIS = {
-    "data_hora" : dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S"),
-    "local_arquivo": 'D:\\py\\Projeto Automacao\\logs_pesquisa\\',
-    "nome_arquivo" : f'manchete_{dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}',
-    "controle_pontos" : 0,
-    "controle_tres_pontos" : 0
+    "data_hora"             : dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S"),
+    "local_arquivo"         : 'D:\\py\\Projeto Automacao\\logs_pesquisa\\',
+    "nome_arquivo"          : f'manchete_{dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}',
+    "controle_pontos"       : 0,
+    "controle_tres_pontos"  : 0,
     }
