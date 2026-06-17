@@ -43,7 +43,8 @@ def func_principal():
             break
     print(texto_personalizado(' Iniciando pesquisas '.upper()))
     driver_edge = Options()
-    driver_edge.add_argument("--headless=new")
+    if not VARIAVEIS["ver_processo"]:
+        driver_edge.add_argument("--headless=new")
     driver = webdriver.Edge(options=driver_edge)
 
     #Bloco respondavel por executar as pesquisar e gravar as informações no arquivo de texto
@@ -55,8 +56,11 @@ def func_principal():
         except FileNotFoundError:
             print(f'Arquivo ou diretório não encontrado, verifique o caminho {arquivo_log}.\nSeguiremos com as pesquisas')
             print()
-        driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}')
-        load(0.07,f'Manchete {pos+1}: {titulo} ')
+        ""
+        #driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}')
+        load(0.07,f'Notícia {pos+1}: [link=https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}]{titulo}[/link]')
+        
+
         
         #Bloco responsável por verificar se o limite de pontos.
         VARIAVEIS["controle_pontos"] += 3
@@ -73,7 +77,7 @@ def func_principal():
             if maximo_ponto:
                 if pontos_atualizados[2]:
                     # print(texto_personalizado(f'Você tem {pontos_atualizados[1]} pontos para reivindicar'))
-                    reivindicar()
+                    reivindicar(LINKS["home_page"])
                     #print(texto_personalizado(f'Pontos reivindicados'))
                     print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
                     break
@@ -94,7 +98,7 @@ def func_principal():
                     pontos_atualizados = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
                     if pontos_atualizados[2]:
                         print(f'Você teve {pontos_atualizados[1]} pontos para reivindicar')
-                        reivindicar()
+                        reivindicar(LINKS["home_page"])
                     print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
                     break
 
@@ -116,7 +120,8 @@ def verifica_membro(link_pagina,xpath_membro) -> int:
         
         #Abre navegado em segundo plano e recebe os parametros da função
         driver_segundo_plano = Options()
-        driver_segundo_plano.add_argument("--headless=new")
+        if not VARIAVEIS["ver_processo"]:
+            driver_segundo_plano.add_argument("--headless=new")
         driver_membro = webdriver.Edge(options=driver_segundo_plano)
         driver_membro.get(link_pagina)
         membro = driver_membro.find_element(By.XPATH,xpath_membro)
@@ -164,7 +169,8 @@ def driver_edge():
     E retorna a pagina aberta.
     '''
     driver_edge = Options()
-    driver_edge.add_argument("--headless=new")
+    if not VARIAVEIS["ver_processo"]:
+        driver_edge.add_argument("--headless=new")
     driver = webdriver.Edge(options=driver_edge)
     driver.get(LINKS["msn_news"])
     for _ in track(range(12),description="[yellow]Aguarde...",transient=True):
@@ -227,7 +233,8 @@ def verifica_pontos(link_pagina , xpath_pontos):
     try:
         #Abre navegador em segundo plano e recebe os parametros da função
         driver_segundo_plano = Options()
-        driver_segundo_plano.add_argument("--headless=new")
+        if not VARIAVEIS["ver_processo"]:
+            driver_segundo_plano.add_argument("--headless=new")
         driver_pontos = webdriver.Edge(options=driver_segundo_plano)
         driver_pontos.get(link_pagina)
         pontos = driver_pontos.find_elements(By.XPATH,xpath_pontos)
@@ -251,7 +258,7 @@ def verifica_pontos(link_pagina , xpath_pontos):
         print(f'Variavel nao definida: {e}')
 
 #Reivindica os pontos dosponiveis
-def reivindicar():
+def reivindicar(home_page):
     '''
     Reivindica os pontos dosponiveis
     '''
@@ -260,9 +267,10 @@ def reivindicar():
         while True:
             progresso.update(tarefa_reivindicar,advance=5,description="[yellow]Reivindicando pontos...")
             driver_edge = Options()
-            driver_edge.add_argument("--headless=new")
+            if not VARIAVEIS["ver_processo"]: 
+                driver_edge.add_argument("--headless=new")
             driver = webdriver.Edge(options=driver_edge)
-            driver.get("https://rewards.bing.com/dashboard")
+            driver.get(home_page)
             clicar = driver.find_element(By.XPATH,XPATH_PAGINA["reivindicar"])
             driver.implicitly_wait(5)
             clicar.click()
