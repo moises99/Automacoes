@@ -38,7 +38,7 @@ def func_principal():
             progresso.update(tarefa,advance=45,description="[yellow]Coletando informações...")
             noticias_func = coleta_noticias()
             progresso.update(tarefa,advance=5,description="[green]Concluindo")
-            meu_maximo_de_pontos = pontos_atuais[0] + 3#pontos_nivel_membro
+            meu_maximo_de_pontos = pontos_atuais[0] + pontos_nivel_membro
             print(texto_personalizado(f' Total de {len(noticias_func[0])} notícias'.upper()))
             break
     print(texto_personalizado(' Iniciando pesquisas '.upper()))
@@ -250,7 +250,7 @@ def verifica_pontos(link_pagina , xpath_pontos):
     except NameError as e:
         print(f'Variavel nao definida: {e}')
 
-#Reinvidica os pontos dosponiveis
+#Reivindica os pontos dosponiveis
 def reivindicar():
     '''
     Reivindica os pontos dosponiveis
