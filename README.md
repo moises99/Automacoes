@@ -46,7 +46,6 @@ A automação só funcionará se estiver feito o login anteriomente, verificará
 
 ```text
 Microsoft Rewards/
-│
 ├── main.py
 ├── requirements.txt
 ├── config.py
