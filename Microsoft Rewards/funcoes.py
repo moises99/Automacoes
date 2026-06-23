@@ -311,7 +311,7 @@ def reivindicar(home_page):
 
 def definido_diariamente(home_page):
     '''
-    Desafios diarios
+    Desafios diarios [EM TESTES]
     '''
     try:
         with Progress() as progresso:
@@ -338,6 +338,9 @@ def definido_diariamente(home_page):
         print(f'Não foi possivel realizar o "Conjutos Diarios!" error:\n {e}')
 
 def continue_ganhando(ganhe_mais):
+    '''
+    Tarefas Continue ganhando [EM TESTES]
+    '''
     try:
         with Progress() as progresso:
             tarefa_continue_ganhando = progresso.add_task(description='[yellow]Fazendo: "Continue ganhando"...')
