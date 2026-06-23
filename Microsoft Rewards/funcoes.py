@@ -37,7 +37,21 @@ def func_principal():
                     nome_nivel_membro = "PRATA"
                 print(texto_personalizado(F' VOCÊ É MEMBRO {nome_nivel_membro} COM {pontos_nivel_membro} PONTOS DIARIOS DE PESQUISAS ')) #if pontos_nivel_membro == 60 else print(texto_personalizado(F' VOCÊ É MEMBRO PRATA COM {pontos_nivel_membro} PONTOS DIARIOS DE PESQUISAS '))
                 progresso.update(tarefa,advance=45,description="[yellow]Coletando informações...")
-                noticias_func = coleta_noticias()
+                #Valida a quantidade de noticias
+                tentativa = 0
+                while True:
+                    noticias_func = coleta_noticias()
+                    if len (noticias_func[0]) > 20:
+                        break
+                    else:
+                        tentativa +=1
+                        print(texto_personalizado(f' Quantidade de noticias insulficiente. Noticias encotradas: {len(noticias_func[0])}'.upper()))
+                        print(texto_personalizado(f' Necessários ao menos 20 noticias '.upper()))
+                        progresso.update(tarefa,advance=2,description="[yellow]Realizando uma nova tentantiva")
+                        print(texto_personalizado(f' Tentantiva: {tentativa}/3 '.upper()))
+                        if tentativa == 3:
+                            progresso.update(tarefa,advance=3,description="[red]Numero de noticias insuficiente, execute a rotina novamente")
+                            exit()
                 progresso.update(tarefa,advance=5,description="[green]Concluindo")
                 meu_maximo_de_pontos = pontos_atuais[0] + pontos_nivel_membro
                 print(texto_personalizado(f' Total de {len(noticias_func[0])} notícias'.upper()))
@@ -47,10 +61,10 @@ def func_principal():
         if not VARIAVEIS["ver_processo"]:
             driver_edge.add_argument("--headless=new")
         driver = webdriver.Edge(options=driver_edge)
-    except TypeError as e:
+    except Exception as e:
         print(f'Erro: {e}')
         exit()
-    #Bloco respondavel por executar as pesquisar e gravar as informações no arquivo de texto
+    #Bloco responsável por executar as pesquisar e gravar as informações no arquivo de texto
     for pos,titulo in track(enumerate(noticias_func[0]),description="[purple]Pesquisando...",transient=True):
         try:
             with open(f'{arquivo_log}.txt','a',encoding="utf-8") as arquivo:
@@ -59,12 +73,11 @@ def func_principal():
         except FileNotFoundError:
             print(f'Arquivo ou diretório não encontrado, verifique o caminho {arquivo_log}.\nSeguiremos com as pesquisas')
             print()
-        ""
         driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}')
         load(0.07,f'Notícia {pos+1}: [link=https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}]{titulo}[/link]')
         #Bloco responsável por verificar se o limite de pontos.
         VARIAVEIS["controle_pontos"] +=3
-        print('VARIAVEIS["controle_pontos"]:  ',VARIAVEIS["controle_pontos"])
+        #print('VARIAVEIS["controle_pontos"]:  ',VARIAVEIS["controle_pontos"])
         if VARIAVEIS["controle_pontos"] == 60:
             with Progress() as progresso:
                 tarefa = progresso.add_task(description="")
@@ -75,7 +88,7 @@ def func_principal():
                     break
             maximo_ponto =  int(pontos_atualizados[0]) >= int(meu_maximo_de_pontos)
             pontos_faltando = int(meu_maximo_de_pontos) - int(pontos_atualizados[0])
-            print('pontos_faltando',pontos_faltando)
+            #print('pontos_faltando',pontos_faltando)
             if maximo_ponto:
                 if pontos_atualizados[2]:
                     VARIAVEIS["d_diariamente"] = definido_diariamente(LINKS["home_page"])
@@ -90,7 +103,7 @@ def func_principal():
             else:
                 #Retorna uma "posição" da diferença de pontos exemplo: 60(pontos_nivel_membro) - 6(pontos_faltando) = 54, me retornar a posica 54 que no caso seira mais 2 duas pesquisa para fechar os 60 pontos
                 VARIAVEIS["controle_pontos"] = pontos_nivel_membro - pontos_faltando
-                print('VARIAVEIS["controle_pontos"]:  ',VARIAVEIS["controle_pontos"])
+                #print('VARIAVEIS["controle_pontos"]:  ',VARIAVEIS["controle_pontos"])
                 print(texto_personalizado(f' Necessários mais {pontos_faltando} pontos').upper())
             #Verifica se há pontos a serem reivindicados e se faltam apenas tres pontos para chegar ao limite de pontos.
             #Caso não atinja o limite ele pega os pontos que faltam e faz novas tentativas até atingir o máximo de pontos.
@@ -180,7 +193,7 @@ def driver_edge():
         driver_edge.add_argument("--headless=new")
     driver = webdriver.Edge(options=driver_edge)
     driver.get(LINKS["msn_news"])
-    for _ in track(range(12),description="[yellow]Aguarde...",transient=True):
+    for _ in track(range(10),description="[yellow]Aguarde...",transient=True):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
     return driver
@@ -202,10 +215,7 @@ def coleta_noticias():
             lista_noticia_formatada.append(noticias_formatadas)
     print()
     driver.quit()
-    if len(titulo_noticia) > 20:
-        return titulo_noticia,lista_noticia_formatada
-    else:
-        return f"Numero de noticias insulficiente: ({len(titulo_noticia)})"
+    return titulo_noticia,lista_noticia_formatada
 
 def load(tempo = 0.02,texto ="[green]Processando...", visibilidade=True):
     '''
@@ -224,8 +234,6 @@ def resumo(nivel_membro="N/A",pontos_membro="N/A",pontos="N/A",pontos_atualizado
         tarefa_resumo = progresso.add_task(description="",transient=True)
         progresso.update(tarefa_resumo,advance=25,description="[yellow]Atualizando pontos...")
         pontos_atualizados = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
-        # cont_ganhando = continue_ganhando(LINKS["home_page"])
-        # definidos_diariamente = definido_diariamente(LINKS["home_page"])
         pontos_atualizados= pontos_atualizados[0]
         table = Table(expand=True)
         table.add_column("Nivel de Membro", justify="center")
