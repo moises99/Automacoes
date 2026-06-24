@@ -2,7 +2,6 @@ from config import LINKS,XPATH_PAGINA,VARIAVEIS,CHAVE_ID
 from personalizacao import texto_personalizado
 import datetime as dt
 import time
-from time import sleep
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
@@ -18,16 +17,13 @@ def func_principal():
     Função principal responsável por executar toda a rotina.
     '''
     try:
-        print(texto_personalizado(' Inicializando... '.upper()))
         arquivo_log = gera_txt()
-        load(0.01,visibilidade = False)
-
         #Bloco responsável por executar algumas funções com barra de progresso
+        pontos_atuais = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
         with Progress() as progresso:
             tarefa = progresso.add_task(description="",transient=True)
             while True:
-                progresso.update(tarefa,advance=25,description="[yellow]Verificando pontos...")
-                pontos_atuais = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
+                progresso.update(tarefa,advance=25,description="[yellow]Iniciando verificação...")
                 print(texto_personalizado(f' PONTOS ATUAIS: {pontos_atuais[0]} '))
                 progresso.update(tarefa,advance=25,description="[yellow]Verificando nivel de membro...")
                 pontos_nivel_membro = verifica_membro(LINKS['home_page'] , XPATH_PAGINA["membro"])
@@ -35,7 +31,7 @@ def func_principal():
                     nome_nivel_membro = "OURO"
                 else:
                     nome_nivel_membro = "PRATA"
-                print(texto_personalizado(F' VOCÊ É MEMBRO {nome_nivel_membro} COM {pontos_nivel_membro} PONTOS DIARIOS DE PESQUISAS ')) #if pontos_nivel_membro == 60 else print(texto_personalizado(F' VOCÊ É MEMBRO PRATA COM {pontos_nivel_membro} PONTOS DIARIOS DE PESQUISAS '))
+                print(texto_personalizado(F' VOCÊ É MEMBRO {nome_nivel_membro} COM {pontos_nivel_membro} PONTOS DIARIOS DE PESQUISAS ')) 
                 progresso.update(tarefa,advance=45,description="[yellow]Coletando informações...")
                 #Valida a quantidade de noticias
                 tentativa = 0
@@ -52,7 +48,7 @@ def func_principal():
                         if tentativa == 3:
                             progresso.update(tarefa,advance=3,description="[red]Numero de noticias insuficiente, execute a rotina novamente")
                             exit()
-                progresso.update(tarefa,advance=5,description="[green]Concluindo")
+                progresso.update(tarefa,advance=5,description="[green]Concluindo",visible=False)
                 meu_maximo_de_pontos = pontos_atuais[0] + pontos_nivel_membro
                 print(texto_personalizado(f' Total de {len(noticias_func[0])} notícias'.upper()))
                 break
@@ -77,33 +73,16 @@ def func_principal():
         load(0.07,f'Notícia {pos+1}: [link=https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}]{titulo}[/link]')
         #Bloco responsável por verificar se o limite de pontos.
         VARIAVEIS["controle_pontos"] +=3
-        #print('VARIAVEIS["controle_pontos"]:  ',VARIAVEIS["controle_pontos"])
         if VARIAVEIS["controle_pontos"] == 60:
-            with Progress() as progresso:
-                tarefa = progresso.add_task(description="")
-                while True:
-                    progresso.update(tarefa,advance=5,description="[yellow]Verificando pontos...")
-                    pontos_atualizados = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
-                    progresso.update(tarefa,advance=95,description="[green]Pontos atualizado...")
-                    break
+            pontos_atualizados = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
             maximo_ponto =  int(pontos_atualizados[0]) >= int(meu_maximo_de_pontos)
             pontos_faltando = int(meu_maximo_de_pontos) - int(pontos_atualizados[0])
             #print('pontos_faltando',pontos_faltando)
             if maximo_ponto:
-                if pontos_atualizados[2]:
-                    VARIAVEIS["d_diariamente"] = definido_diariamente(LINKS["home_page"])
-                    VARIAVEIS["c_ganhando"] = continue_ganhando(LINKS["home_page"])
-                    print(f'Você tem {pontos_atualizados[1]} pontos para reivindicar')
-                    reivindicar(LINKS["home_page"])
-                    print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
-                    break
-                else:
-                    print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
-                    break
+                break
             else:
                 #Retorna uma "posição" da diferença de pontos exemplo: 60(pontos_nivel_membro) - 6(pontos_faltando) = 54, me retornar a posica 54 que no caso seira mais 2 duas pesquisa para fechar os 60 pontos
                 VARIAVEIS["controle_pontos"] = pontos_nivel_membro - pontos_faltando
-                #print('VARIAVEIS["controle_pontos"]:  ',VARIAVEIS["controle_pontos"])
                 print(texto_personalizado(f' Necessários mais {pontos_faltando} pontos').upper())
             #Verifica se há pontos a serem reivindicados e se faltam apenas tres pontos para chegar ao limite de pontos.
             #Caso não atinja o limite ele pega os pontos que faltam e faz novas tentativas até atingir o máximo de pontos.
@@ -112,16 +91,18 @@ def func_principal():
                 VARIAVEIS["controle_tres_pontos"] +=1
                 print(texto_personalizado(f'Tentativa: {VARIAVEIS["controle_tres_pontos"]}/3'))
                 if VARIAVEIS["controle_tres_pontos"] == 3:
-                    pontos_atualizados = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
-                    if pontos_atualizados[2]:
-                        VARIAVEIS["d_diariamente"] = definido_diariamente(LINKS["home_page"])
-                        VARIAVEIS["c_ganhando"] = continue_ganhando(LINKS["home_page"])
-                        print(f'Você tem {pontos_atualizados[1]} pontos para reivindicar')
-                        reivindicar(LINKS["home_page"])
-                    print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
                     break
-
-    print(resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais[0],pontos_atualizados[0],pontos_atualizados[1],pos,VARIAVEIS["d_diariamente"],VARIAVEIS["c_ganhando"]))
+    pontos_att_mais_pontos_reivindicados = pontos_atualizados[0]
+    if pontos_atualizados[2]:
+        reivindicar(LINKS["home_page"])
+        pontos_att_mais_pontos_reivindicados = pontos_atualizados[0] + pontos_atualizados[1]
+    VARIAVEIS["c_ganhando"] = continue_ganhando(LINKS["home_page"])
+    VARIAVEIS["d_diariamente"] = definido_diariamente(LINKS["home_page"])
+    print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
+    try:                
+        print(resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais[0],pontos_att_mais_pontos_reivindicados,pontos_atualizados[1],pos,VARIAVEIS["d_diariamente"],VARIAVEIS["c_ganhando"]))
+    except Exception as e:
+        print(f'Erro: {e}')
     print(texto_personalizado(f'ARQUIVO SALVO EM {arquivo_log}'))
     print(texto_personalizado(f'Rotina finalizada').upper().center(120))
     driver.quit()
@@ -195,7 +176,7 @@ def driver_edge():
     driver.get(LINKS["msn_news"])
     for _ in track(range(10),description="[yellow]Aguarde...",transient=True):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(2)
+        time.sleep(1)
     return driver
 
 #Coleta o título das noticias
@@ -203,20 +184,23 @@ def coleta_noticias():
     '''
     Coleta as manchetes da pagina.
     '''
-    driver = driver_edge()
-    titulo_noticia = []
-    lista_noticia_formatada = []
-    titulos_noticia = driver.find_elements(By.XPATH,"//a[@class='title']")
-    for titulos in track(titulos_noticia, description=" [yellow]Gerando lista... ",transient=True):
-        manchete = f"{titulos.text}"
-        if len(manchete) > 5:
-            titulo_noticia.append(manchete)
-            noticias_formatadas = str(titulos.text).replace(' ','%20').replace(',','%2C').replace(':','%3A').replace(';','%3B').replace("'","%27")
-            lista_noticia_formatada.append(noticias_formatadas)
-    print()
-    driver.quit()
-    return titulo_noticia,lista_noticia_formatada
-
+    try:
+        driver = driver_edge()
+        titulo_noticia = []
+        lista_noticia_formatada = []
+        titulos_noticia = driver.find_elements(By.XPATH,"//a[@class='title']")
+        for titulos in track(titulos_noticia, description=" [yellow]Gerando lista... ",transient=True):
+            manchete = f"{titulos.text}"
+            if len(manchete) > 5:
+                titulo_noticia.append(manchete)
+                noticias_formatadas = str(titulos.text).replace(' ','%20').replace(',','%2C').replace(':','%3A').replace(';','%3B').replace("'","%27")
+                lista_noticia_formatada.append(noticias_formatadas)
+        driver.quit()
+        return titulo_noticia,lista_noticia_formatada
+    except Exception as e:
+        print(f'Ocorreu um erro.\n {e}')
+        return 1
+        
 def load(tempo = 0.02,texto ="[green]Processando...", visibilidade=True):
     '''
     Função simples apenas para gerar uma barra de progresso.
@@ -227,14 +211,9 @@ def load(tempo = 0.02,texto ="[green]Processando...", visibilidade=True):
         while not progress.finished:
             progress.update(task1, advance=1)
             time.sleep(tempo)
-
 #Mostra um resumo das atividas após concluir a rotina
 def resumo(nivel_membro="N/A",pontos_membro="N/A",pontos="N/A",pontos_atualizados="N/A",pontos_reivindicados="N/A",total_pesquisas="N/A",definidos_diariamente="N/A",cont_ganhando="N/A"):
     with Progress() as progresso:
-        tarefa_resumo = progresso.add_task(description="",transient=True)
-        progresso.update(tarefa_resumo,advance=25,description="[yellow]Atualizando pontos...")
-        pontos_atualizados = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
-        pontos_atualizados= pontos_atualizados[0]
         table = Table(expand=True)
         table.add_column("Nivel de Membro", justify="center")
         table.add_column("Pontos de Membro", justify="center")
@@ -246,8 +225,6 @@ def resumo(nivel_membro="N/A",pontos_membro="N/A",pontos="N/A",pontos_atualizado
         table.add_column("Continue Ganhando", justify="center")
         table.add_row(str(nivel_membro),str(pontos_membro),str(pontos),str(pontos_atualizados),str(pontos_reivindicados),str(total_pesquisas),str(definidos_diariamente),str(cont_ganhando))
         painel = Panel(table,title=texto_personalizado("Resumo").upper(),width=120,subtitle="Volte amanhão para ganhar novos pontos",style="bold")
-        progresso.update(tarefa_resumo,advance=74,description="[yellow]Gerando resumo...")
-        progresso.update(tarefa_resumo,advance=74,description="[green]Concluido")
         return painel
 
 #Funcão responsável por coletar os pontos atuais e se há pontos para reivindicar.
@@ -258,33 +235,38 @@ def verifica_pontos(link_pagina , xpath_pontos):
     link_pagina: url do sua pgina logada
     xpath_pontos: o caminho do xpath dos pontos
     '''
-    
-    try:
-        #Abre navegador em segundo plano e recebe os parametros da função
-        driver_segundo_plano = Options()
-        if not VARIAVEIS["ver_processo"]:
-            driver_segundo_plano.add_argument("--headless=new")
-        driver_pontos = webdriver.Edge(options=driver_segundo_plano)
-        driver_pontos.get(link_pagina)
-        pontos = driver_pontos.find_elements(By.XPATH,xpath_pontos)
-        lista_pontos = [pontos.text.replace(".","") for pontos in pontos]
-        #converte o float para int
-        pontos = int(lista_pontos[0])
-        pontos_reinvidicar = int(lista_pontos[1])
-        flag_pontos_reivindicar = False
-        if pontos_reinvidicar >= 1: 
-            flag_pontos_reivindicar = True
-        driver_pontos.quit()
-        return int(pontos),int(pontos_reinvidicar),bool(flag_pontos_reivindicar)
-    
-    except IndentationError as e:
-        print(f'Erro de indentação {e}')
-    except SyntaxError as e:
-        print(f'Erro de sintaxe {e}')
-    except KeyboardInterrupt as e:
-        print(f'Interrompido pelo usuário: {e}')
-    except NameError as e:
-        print(f'Variavel nao definida: {e}')
+    with Progress() as progresso:
+        while True:
+            tarefa_pontos = progresso.add_task(description='[yellow]Verificando pontos...',transient=True)
+            try:
+                #Abre navegador em segundo plano e recebe os parametros da função
+                driver_segundo_plano = Options()
+                if not VARIAVEIS["ver_processo"]:
+                    driver_segundo_plano.add_argument("--headless=new")
+                progresso.update(tarefa_pontos, advance=40,description='[yellow]Verificando pontos...',transient=True)
+                driver_pontos = webdriver.Edge(options=driver_segundo_plano)
+                driver_pontos.get(link_pagina)
+                pontos = driver_pontos.find_elements(By.XPATH,xpath_pontos)
+                lista_pontos = [pontos.text.replace(".","") for pontos in pontos]
+                progresso.update(tarefa_pontos, advance=50,description='[yellow]Verificando pontos...',transient=True)
+                #converte o float para int
+                pontos = int(lista_pontos[0])
+                pontos_reivindicar = int(lista_pontos[1])
+                flag_pontos_reivindicar = False
+                if pontos_reivindicar >= 1: 
+                    flag_pontos_reivindicar = True
+                driver_pontos.quit()
+                progresso.update(tarefa_pontos, advance=10,description='[green]Concluido...',visible=False)
+                return int(pontos),int(pontos_reivindicar),bool(flag_pontos_reivindicar)
+            except IndentationError as e:
+                print(f'Erro de indentação {e}')
+            except SyntaxError as e:
+                print(f'Erro de sintaxe {e}')
+            except KeyboardInterrupt as e:
+                print(f'Interrompido pelo usuário: {e}')
+            except NameError as e:
+                print(f'Variavel nao definida: {e}')
+            break
 
 #Reivindica os pontos dosponiveis
 def reivindicar(home_page):
@@ -301,83 +283,89 @@ def reivindicar(home_page):
                     driver_edge.add_argument("--headless=new")
                 driver = webdriver.Edge(options=driver_edge)
                 driver.get(home_page)
-                clicar = driver.find_element(By.XPATH,XPATH_PAGINA["reivindicar"])
+                clicar = driver.find_element(By.XPATH,XPATH_PAGINA["click_reivindicar"])
                 time.sleep(5)
                 driver.implicitly_wait(5)
                 clicar.click()
                 time.sleep(5)
                 driver.implicitly_wait(5)
-                clicar = driver.find_element(By.XPATH,XPATH_PAGINA["ganhar_mais_pontos"])
-                time.sleep(5)
-                driver.implicitly_wait(5)
-                clicar.click()
                 progresso.update(tarefa_reivindicar,advance=95,description="[green]Pontos reivindicados")
                 driver.quit()
                 break
     except Exception as e:
-        print(f'Não foi possivel reinvidicar os pontos error: {e}')
+        print(texto_personalizado(f'Não foi possivel reivindicar os pontos'))
+        print(texto_personalizado('Veja o log em logs_error/reivindicar.txt'))
+        with open('..\\logs_error\\reivindicar.txt','w') as arquivo:
+            arquivo.write(str(e))
 
-def definido_diariamente(home_page):
+def definido_diariamente(home_page) ->int:
     '''
     Desafios diarios [EM TESTES]
     '''
     try:
         with Progress() as progresso:
-            tarefa_definido_diariamente = progresso.add_task(description='[yellow]Fazendo: "Desafios diários..."')
+            tarefa_definido_diariamente = progresso.add_task(description='[yellow]Verificando: "Desafios diários..."')
             while True:
-                progresso.update(tarefa_definido_diariamente,advance=5,description='[yellow]Fazendo: "Desafios diários..."')
+                progresso.update(tarefa_definido_diariamente,advance=30,description='[yellow]Verificando: "Desafios diários..."')
                 driver_edge = Options()
                 if not VARIAVEIS["ver_processo"]: 
                     driver_edge.add_argument("--headless=new")
                 driver = webdriver.Edge(options=driver_edge)
                 driver.get(home_page)
-                time.sleep(10)
+                driver.implicitly_wait(15)
                 elementos = driver.find_elements(By.XPATH,XPATH_PAGINA['definidos_diariamente'])
-                time.sleep(10)
-                for c in track(range(3),total=100,description='[yellow]Concluindo: "Desafios diários"...',transient=True):
-                    elementos[c].click()
-
-                    progresso.update(tarefa_definido_diariamente,advance=30,description=f"[yellow]Conjunto{[c+1]}")
-                    time.sleep(10)
-                progresso.update(tarefa_definido_diariamente,advance=5,description="[green]Desafios conluídos")
+                progresso.update(tarefa_definido_diariamente,advance=40,description='[yellow]Verificando: "Desafios diários..."')
+                d_list = []
+                for elements in elementos:
+                    driver.implicitly_wait(15)
+                    elements = elements.text
+                    d_list.append(elements)
+                progresso.update(tarefa_definido_diariamente,advance=30,description="[green]Conluídos",visible=False)
                 driver.quit()
                 break
+            soma_d_diariamente = [int(p) for p in d_list]
+            soma_d_diariamente = sum(soma_d_diariamente)
+            return soma_d_diariamente
     except Exception as e:
-        print(f'Não foi possivel realizar o "Conjutos Diarios!" error:\n {e}')
+        print(texto_personalizado(f'Não foi possivel verificar o "Definido Diariamente"'))
+        print(texto_personalizado('Veja o log em logs_error/definido_diariamente.txt'))
+        with open('..\\logs_error\\definido_diariamente.txt','w') as arquivo:
+            arquivo.write(str(e))
 
-def continue_ganhando(ganhe_mais):
+def continue_ganhando(ganhe_mais)->int:
     '''
     Tarefas Continue ganhando [EM TESTES]
     '''
     try:
         with Progress() as progresso:
-            tarefa_continue_ganhando = progresso.add_task(description='[yellow]Fazendo: "Continue ganhando"...')
+            tarefa_continue_ganhando = progresso.add_task(description='[yellow]Verificando: "Continue ganhando"...')
             while True:
-                progresso.update(tarefa_continue_ganhando,advance=30,description='[yellow]Fazendo: "Continue ganhando"...')
+                progresso.update(tarefa_continue_ganhando,advance=30,description='[yellow]Verificando: "Continue ganhando"...')
                 driver_edge = Options()
                 if not VARIAVEIS["ver_processo"]: 
                     driver_edge.add_argument("--headless=new")
                 driver = webdriver.Edge(options=driver_edge)
                 driver.get(ganhe_mais)
-                time.sleep(10)
+                driver.implicitly_wait(20)
                 ganhar = driver.find_elements(By.XPATH,XPATH_PAGINA['ganhe_mais'])
-                time.sleep(10)
                 ganhar[1].click()
-                time.sleep(10)
                 driver.get(LINKS["continue_ganhando"])
-                time.sleep(10)
-                progresso.update(tarefa_continue_ganhando,advance=60,description="[yellow]Fazendo desafios diários...")
+                progresso.update(tarefa_continue_ganhando,advance=60,description="[yellow]Verificando desafios diários...")
+                driver.implicitly_wait(20)
                 c_ganhar = driver.find_elements(By.XPATH,XPATH_PAGINA['continue_ganhando'])
-                time.sleep(10)
-                for c in track(c_ganhar[5:14],total=100,description='[yellow]Concluindo: "Continue ganhando"...',transient=True):
-                    c.click()
-                    time.sleep(0.07)
-                progresso.update(tarefa_continue_ganhando,advance=10,description="[green]Concluido...")
+                c_list = []
+                for c_ganhando in c_ganhar:
+                    c_ganhando = c_ganhando.text
+                    c_list.append(c_ganhando)
+                    driver.implicitly_wait(20)
+                    progresso.update(tarefa_continue_ganhando,advance=10,description="[green]Concluido...",visible=False)
                 driver.quit()
                 break
+            soma_c_ganhando = [int(p) for p in c_list]
+            soma_c_ganhando = sum(soma_c_ganhando)
+        return soma_c_ganhando
     except Exception as e:
-        print(f'Não foi possivel realizar o "Ganhe Mais!" error:\n {e}')
-
-
-
-
+        print(texto_personalizado(f'Não foi possivel verificar o "Ganhe Mais!"'))
+        print(texto_personalizado('Veja o log em logs_error/continue_ganhando.txt'))
+        with open('..\\logs_error\\continue_ganhando.txt','w') as arquivo:
+            arquivo.write(str(e))

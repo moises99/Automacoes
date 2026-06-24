@@ -5,7 +5,6 @@ import datetime as dt
 
 LINKS = {
     "home_page"  : "https://rewards.bing.com/dashboard",
-    #"msn_news"   : "https://www.bing.com/news/?form=ml11z9&crea=ml11z9&wt.mc_id=ml11z9&rnoreward=1&rnoreward=1",
     "msn_news"   : "https://www.bing.com/news/search?q=Brasil&nvaug=%5bNewsVertical+Category%3d%22rt_Brazil%22%5d&FORM=NSBABR",
     "continue_ganhando" : "https://rewards.bing.com/earn"
     }
@@ -14,12 +13,11 @@ LINKS = {
 XPATH_PAGINA = {
     "membro"                    : "//p[@class='rounded-ctrlBadgeCorner px-2 py-1 text-globalCaption1Strong text-rewardsLevelBadgeFg bg-rewardsGoldBadgeBg']",
     "pontos"                    : "//p[@class='text-pageHeader']",
-    "reivindicar"               : "//button[@class='group/ctrl text-start cursor-pointer disabled:cursor-default outline-0 outline-ctrlFocusOuterStroke outline-offset-(--spacing-ctrlFocusInnerStrokeWidth) data-focus-visible:outline-ctrlFocusOuterStrokeWidth w-full rounded-cornerCardDefault']",
+    "click_reivindicar"         : "//button[@class='group/ctrl text-start cursor-pointer disabled:cursor-default outline-0 outline-ctrlFocusOuterStroke outline-offset-(--spacing-ctrlFocusInnerStrokeWidth) data-focus-visible:outline-ctrlFocusOuterStrokeWidth w-full rounded-cornerCardDefault']",
     "ganhar_mais_pontos"        : "//span[@class='relative px-paddingCtrlTextSide inline-flex items-center pt-paddingCtrlLgTextTop pb-paddingCtrlLgTextBottom gap-gapBetweenContentXSmall']",
-    #"definidos_diariamente"     : "//p[@class='line-clamp-3 text-fgCtrlNeutralSecondaryRest']",
-    "definidos_diariamente"     : "//p[@class='line-clamp-3 text-globalBody2Strong']",
-    "ganhe_mais"                :"//span[@class='relative px-paddingCtrlTextSide inline-flex items-center pt-paddingCtrlTextTop pb-paddingCtrlTextBottom gap-gapBetweenContentXxSmall']",
-    "continue_ganhando"         : "//p[@class='line-clamp-3 text-globalBody2Strong']",
+    "definidos_diariamente"     : "//p[@class='text-metadata text-fgCtrlOnImage']",
+    "ganhe_mais" : "//span[@class='relative px-paddingCtrlTextSide inline-flex items-center pt-paddingCtrlLgTextTop pb-paddingCtrlLgTextBottom gap-gapBetweenContentXSmall']",
+    "continue_ganhando"         : "//p[@class='text-metadata text-fgCtrlOnImage']",
     }
 
 
@@ -37,6 +35,5 @@ VARIAVEIS = {
     "controle_tres_pontos"  : 0,
     "c_ganhando"            : 0,
     "d_diariamente"         : 0,
-
-
+    "total_reivindicar"     : 0,
     }
