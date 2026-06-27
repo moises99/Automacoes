@@ -77,7 +77,6 @@ def func_principal():
             pontos_atualizados = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
             maximo_ponto =  int(pontos_atualizados[0]) >= int(meu_maximo_de_pontos)
             pontos_faltando = int(meu_maximo_de_pontos) - int(pontos_atualizados[0])
-            #print('pontos_faltando',pontos_faltando)
             if maximo_ponto:
                 break
             else:
@@ -117,7 +116,7 @@ def verifica_membro(link_pagina,xpath_membro) -> int:
     '''
     try:
         
-        #Abre navegado em segundo plano e recebe os parametros da função
+        #Abre o navegador em segundo plano e recebe os parametros da função
         driver_segundo_plano = Options()
         if not VARIAVEIS["ver_processo"]:
             driver_segundo_plano.add_argument("--headless=new")
@@ -143,7 +142,7 @@ def verifica_membro(link_pagina,xpath_membro) -> int:
     except NameError as e:
         print(f'Variavel no definida {e}')
 
-#Gera um arquivo contendo a manche e os links de cada pesquisa
+#Gera um arquivo contendo a manchete e os links de cada pesquisa
 def gera_txt():
     '''
     Gera um arquivo txt com as manchetes e links de cada notícia.
@@ -161,7 +160,7 @@ def gera_txt():
         print()
     return arquivo_log
 
-#Cria a conexao com o site *Necessário estar logado e Rolagem automatica da Pagina
+#Cria a conexao com o site *Necessário estar logado tammbém faz uma rolagem automatica da Pagina
 def driver_edge():
     '''
     Abre uma pagina web recebendo o link atravrés da variavel LINKS["msn_news"].
