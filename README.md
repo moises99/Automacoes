@@ -13,7 +13,7 @@ Automação desenvolvida em Python para realizar pesquisas automaticamente no Mi
 ## 📋 Requisitos
 
 - Python 3.10 ou superior
-- Google Chrome ou Microsoft Edge
+- Microsoft Edge
 - ChromeDriver ou WebDriver compatível
 
 ## 📦 Instalação
@@ -37,6 +37,7 @@ python main.py
 ```
 
 A automação só funcionará se estiver feito o login anteriomente, verificará a pontuação atual e realizará as pesquisas necessárias até atingir o limite diário.
+Também fará os desafio e conjuntos diarios. 
 
 ## 📊 Recursos
 - Verificação automática de pontos.
