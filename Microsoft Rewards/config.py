@@ -1,12 +1,7 @@
 #Definição das variaveis globais
 import secrets
 import datetime as dt
-from pathlib import Path
-import os
 
-# caminho = Path("laalalalala","lilili")
-# caminho.mkdir(parents=True, exist_ok=True)
-# print("Caminho criado com sucesso!")
 
 LINKS = {
     "home_page"         : "https://rewards.bing.com/dashboard",
