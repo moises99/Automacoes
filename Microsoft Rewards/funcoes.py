@@ -143,7 +143,6 @@ def verifica_membro(link_pagina,xpath_membro) -> int:
 
 #Gera um arquivo contendo a manchete e os links de cada pesquisa
 def gera_txt():
-    # print("Caminho criado com sucesso!")
     '''
     Gera um arquivo txt com as manchetes e links de cada notícia.
     E retornar o nome do arquivo
