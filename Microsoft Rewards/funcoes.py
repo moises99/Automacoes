@@ -403,5 +403,3 @@ def definido_diariamente(home_page) ->int:
                 with open("definido_diariamente.txt","w",encoding="utf-8") as arquivo:
                     arquivo.write(str(e))
             break
-
-print(resumo())
