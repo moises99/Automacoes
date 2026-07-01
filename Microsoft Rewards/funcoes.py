@@ -18,7 +18,7 @@ def func_principal():
     Função principal responsável por executar toda a rotina.
     '''
     try:
-        destaques_txt = gera_txt()
+        destaques_txt = gera_txt('suas_pesquisa',f'====== PESQUISAS DATA {dt.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")} ======\n',f'{VARIAVEIS["nome_arquivo"]}.txt' )
         #Bloco responsável por executar algumas funções com barra de progresso
         pontos_atuais = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
         with Progress() as progresso:
@@ -65,7 +65,7 @@ def func_principal():
     for pos,titulo in track(enumerate(noticias_func[0]),description="[purple]Pesquisando...",transient=True):
         TOKEN_ID = secrets.token_hex(26).upper()
         try:
-            with open(f'{destaques_txt}.txt','a',encoding="utf-8") as arquivo:
+            with open(destaques_txt,'a',encoding="utf-8") as arquivo:
                 arquivo.writelines(f'Destaque {pos+1}: {titulo}\n-Link: https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}\n\n')
                 print()
         except FileNotFoundError:
@@ -145,24 +145,24 @@ def verifica_membro(link_pagina,xpath_membro) -> int:
         print(f'Variavel no definida {e}')
 
 #Gera um arquivo contendo a manchete e os links de cada pesquisa
-def gera_txt():
+def gera_txt(pasta ='log',cabecaclho = VARIAVEIS["data_hora"], nome_arquivo = 'log.txt'):
     '''
     Gera um arquivo txt com as manchetes e links de cada notícia.
     E retornar o nome do arquivo
     '''
     try:
-        caminho = Path(__file__).parent / 'suas_pesquisa'
+        caminho = Path(__file__).parent / pasta
         caminho.mkdir(exist_ok=True)
-        arquivo_caminho = Path(__file__).parent / 'suas_pesquisa' / f'{VARIAVEIS["nome_arquivo"]}.txt'
-        arquivo_caminho.touch()
+        arquivo = Path(__file__).parent / pasta / nome_arquivo
+        arquivo.touch()
         #Bloco para criar o arquico concatenando a data do dia com o nome do arquivo
-        with open(arquivo_caminho,'a',encoding="utf-8") as arquivo:
-            arquivo.write(f'====== PESQUISAS DATA {dt.datetime.now().strftime("%d/%m/%Y")} ======\n')
+        with open(arquivo,'a',encoding="utf-8") as arquivo:
+            arquivo.write(cabecaclho)
     except FileNotFoundError as e:
-        print(f'Arquivo ou diretório não encontrado, verifique o caminho {caminho}.\nSeguiremos apenas com as pesquisas.')
+        print(f'Arquivo ou diretório não encontrado, verifique o caminho {caminho}.')
         print()
-    caminho_arquivo = Path() / caminho / VARIAVEIS["nome_arquivo"]
-    return caminho_arquivo
+    nome_caminho_arquivo = Path() / caminho / nome_arquivo
+    return nome_caminho_arquivo
 
 #Cria a conexao com o site *Necessário estar logado tammbém faz uma rolagem automatica da Pagina
 def driver_edge():
@@ -213,6 +213,7 @@ def load(tempo = 0.02,texto ="[green]Processando...", visibilidade=True):
         while not progress.finished:
             progress.update(task1, advance=1)
             time.sleep(tempo)
+
 #Mostra um resumo das atividas após concluir a rotina
 def resumo(nivel_membro="N/A",pontos_membro="N/A",pontos="N/A",pontos_atualizados="N/A",pontos_reivindicados="N/A",total_pesquisas="N/A",definidos_diariamente="N/A",cont_ganhando="N/A"):
     table = Table(expand=True)
@@ -299,9 +300,12 @@ def reivindicar(home_page):
                 break
     except Exception as e:
         print(texto_personalizado(f"Não foi possivel reivindicar os pontos"))
-        print(texto_personalizado('Verifique o arquivo reivindicar.txt'))
-        with open('reivindicar.txt','w') as arquivo:
+        arquivo_txt = gera_txt('log_error',nome_arquivo='reivindicar.txt')
+        with open(arquivo_txt,'a',encoding="utf-8") as arquivo:
+            arquivo.write(f'{VARIAVEIS["data_hora"]}\n')
+            arquivo.write("\n")
             arquivo.write(str(e))
+        print(texto_personalizado(f'Verifique o arquivo: {arquivo_txt}'))
 
 #Faz atividades "Continue Ganhando"
 def continue_ganhando(link_home)->int:
@@ -337,10 +341,12 @@ def continue_ganhando(link_home)->int:
                             print(texto_personalizado(f'{titulos_continue_ganhando_text} [OK]'))
                         except Exception as e:
                             print(texto_personalizado(f'A tarefa: "{titulos_continue_ganhando_text}" deve ser feita manualmente'))
-                            with open('definidos_diariamente.txt','a',encoding="utf-8") as arquivo:
+                            arquivo_txt = gera_txt('log_error',nome_arquivo='continue_ganhando.txt')
+                            with open(arquivo_txt,'a',encoding="utf-8") as arquivo:
                                 arquivo.write(f'{VARIAVEIS["data_hora"]}\n')
                                 arquivo.write("\n")
                                 arquivo.write(str(e))
+                            print(texto_personalizado(f'Verifique o arquivo: {arquivo_txt}'))
                         finally:
                             progresso.update(tarefa_continue_ganhando,advance=10,description=f'[yellow]Fazendo o "Continue Ganhando: {titulos_continue_ganhando_text}"...')
                             time.sleep(5)
@@ -354,9 +360,12 @@ def continue_ganhando(link_home)->int:
                     return 0
             except Exception as e:
                 print(texto_personalizado(f'Não foi possivel fazer o "Continue ganhando"'))
-                print(texto_personalizado('Verifique o arquivo: continue_ganhando.txt'))
-                with open("continue_ganhando.txt","w",encoding="utf-8") as arquivo:
+                arquivo_txt = gera_txt('log_error',nome_arquivo='continue_ganhando.txt')
+                with open(arquivo_txt,'a',encoding="utf-8") as arquivo:
+                    arquivo.write(f'{VARIAVEIS["data_hora"]}\n')
+                    arquivo.write("\n")
                     arquivo.write(str(e))
+                print(texto_personalizado(f'Verifique o arquivo: {arquivo_txt}'))
             break
 
 #Faz atividades "Desafios Diarios"
@@ -369,45 +378,49 @@ def definido_diariamente(home_page) ->int:
     with Progress() as progresso:
         tarefa_definido_diariamente = progresso.add_task(description='[yellow]Verificando: "Desafios Diários..."')
         while True:
-            progresso.update(tarefa_definido_diariamente,advance=5,description='[yellow]Verificando: "Desafios diários..."')
-            driver_edge = Options()
-            #Necessario mostrar o processo para que seja possivel clicar nos elementos
-            if VARIAVEIS["ver_processo"]: 
-                driver_edge.add_argument("--headless=new")
-            driver = webdriver.Edge(options=driver_edge)
-            driver.get(home_page)
-            driver.implicitly_wait(20)
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            for c in track(range(10),description="[yellow]Aguarde...",transient=True):
-                time.sleep(1)
             try:
+                progresso.update(tarefa_definido_diariamente,advance=5,description='[yellow]Verificando: "Desafios diários..."')
+                driver_edge = Options()
+                #Necessario mostrar o processo para que seja possivel clicar nos elementos
+                if VARIAVEIS["ver_processo"]: 
+                    driver_edge.add_argument("--headless=new")
+                driver = webdriver.Edge(options=driver_edge)
+                driver.get(home_page)
+                driver.implicitly_wait(20)
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                for c in track(range(10),description="[yellow]Aguarde...",transient=True):
+                    time.sleep(1)
                 titulo_definidos_diariamente = driver.find_elements(By.XPATH,XPATH_PAGINA["titulo_definidos_diariamente"])
                 click_definidos_diariamente = driver.find_elements(By.XPATH,XPATH_PAGINA["click_definidos_diariamente"])[2:5]
                 progresso.update(tarefa_definido_diariamente,advance=10,description='[yellow]Verificando: "Desafios diários..."')
                 pontos_definidos_diariamente = 0
                 for p,c in enumerate(track(click_definidos_diariamente,description="[purple]Clicando...",transient=True,total=len(click_definidos_diariamente))):
                     titulo_definidos_diariamente_text = titulo_definidos_diariamente[p].text.upper()
-                    
                     try:
                         c.click()
                         pontos_definidos_diariamente += 10
                         print(texto_personalizado(f'{titulo_definidos_diariamente_text} [OK]'))
                     except Exception as e:
                         print(texto_personalizado(f'A tarefa: "{titulo_definidos_diariamente_text}" deve ser feita manualmente'))
-                        with open('definidos_diariamente.txt','a',encoding="utf-8") as arquivo:
+                        arquivo_txt = gera_txt('log_error',nome_arquivo='definidos_diariamente.txt')
+                        with open(arquivo_txt,'a',encoding="utf-8") as arquivo:
                             arquivo.write(f'{VARIAVEIS["data_hora"]}\n')
+                            arquivo.write('definidos_diariamente')
                             arquivo.write("\n")
                             arquivo.write(str(e))
+                        print(texto_personalizado(f'Verifique o arquivo: {arquivo_txt}'))
                     finally:
                         progresso.update(tarefa_definido_diariamente,advance=25,description=f'[yellow]Fazendo o "Definido Diariamente: {titulo_definidos_diariamente_text}"...')
                         time.sleep(5)
-                progresso.update(tarefa_definido_diariamente,advance=10,description="[green]Concluido",visible=False)
-                driver.quit()
-                return pontos_definidos_diariamente if pontos_definidos_diariamente  > 0 else 0
+                    progresso.update(tarefa_definido_diariamente,advance=10,description="[green]Concluido",visible=False)
+                    driver.quit()
+                    return pontos_definidos_diariamente if pontos_definidos_diariamente  > 0 else 0
             except Exception as e:
                 print(texto_personalizado(f'Não foi possivel fazer o "Definido Diariamente"'))
-                print(texto_personalizado('Verifique o arquivo: definido_diariamente.txt'))
-                with open("definido_diariamente.txt","w",encoding="utf-8") as arquivo:
+                arquivo_txt = gera_txt('log_error',nome_arquivo='definido_diariamente.txt')
+                with open(arquivo_txt,'a',encoding="utf-8") as arquivo:
+                    arquivo.write(f'{VARIAVEIS["data_hora"]}\n')
+                    arquivo.write("\n")
                     arquivo.write(str(e))
+                print(texto_personalizado(f'Verifique o arquivo: {arquivo_txt}'))
             break
-
