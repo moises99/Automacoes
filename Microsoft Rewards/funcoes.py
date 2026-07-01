@@ -1,4 +1,4 @@
-from config import LINKS,XPATH_PAGINA,VARIAVEIS,CHAVE_ID
+from config import LINKS,XPATH_PAGINA,VARIAVEIS
 from personalizacao import texto_personalizado
 import datetime as dt
 import time
@@ -9,6 +9,8 @@ from rich.progress import Progress, track
 from rich import print
 from rich.table import Table
 from rich.panel import Panel
+from pathlib import Path
+import secrets
 
 #Responsável por executar as funcionalidades da página
 def func_principal():
@@ -16,7 +18,7 @@ def func_principal():
     Função principal responsável por executar toda a rotina.
     '''
     try:
-        arquivo_log = gera_txt()
+        destaques_txt = gera_txt()
         #Bloco responsável por executar algumas funções com barra de progresso
         pontos_atuais = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
         with Progress() as progresso:
@@ -61,15 +63,16 @@ def func_principal():
         exit()
     #Bloco responsável por executar as pesquisar e gravar as informações no arquivo de texto
     for pos,titulo in track(enumerate(noticias_func[0]),description="[purple]Pesquisando...",transient=True):
+        TOKEN_ID = secrets.token_hex(26).upper()
         try:
-            with open(f'{arquivo_log}.txt','a',encoding="utf-8") as arquivo:
-                arquivo.writelines(f'\nManchete {pos+1}: {titulo}\nID:{CHAVE_ID["chave"]}\nLink: https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}\n')
+            with open(f'{destaques_txt}.txt','a',encoding="utf-8") as arquivo:
+                arquivo.writelines(f'Destaque {pos+1}: {titulo}\n-Link: https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}\n\n')
                 print()
         except FileNotFoundError:
-            print(f'Arquivo ou diretório não encontrado, verifique o caminho {arquivo_log}.\nSeguiremos com as pesquisas')
+            print(f'Arquivo ou diretório não encontrado, verifique o caminho {destaques_txt}.\nSeguiremos com as pesquisas')
             print()
-        driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}')
-        load(0.01,f'Notícia {pos+1}: [link=https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}]{titulo}[/link]')
+        driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}')
+        load(0.07,f'Notícia {pos+1}: [link=https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}]{titulo}[/link]')
         #Bloco responsável por verificar se o limite de pontos.
         VARIAVEIS["controle_pontos"] +=3
         if VARIAVEIS["controle_pontos"] == 60:
@@ -100,7 +103,7 @@ def func_principal():
         print(resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais[0],pontos_atualizados[0],pontos_atualizados[1],pos,VARIAVEIS["d_diariamente"],VARIAVEIS["c_ganhando"]))
     except Exception as e:
         print(f'Erro: {e}')
-    print(texto_personalizado(f'ARQUIVO SALVO EM {arquivo_log}'))
+    print(texto_personalizado(f'ARQUIVO SALVO EM {destaques_txt}'))
     print(texto_personalizado(f'Rotina finalizada').upper().center(120))
     driver.quit()
 
@@ -148,14 +151,18 @@ def gera_txt():
     E retornar o nome do arquivo
     '''
     try:
+        caminho = Path(__file__).parent / 'suas_pesquisa'
+        caminho.mkdir(exist_ok=True)
+        arquivo_caminho = Path(__file__).parent / 'suas_pesquisa' / f'{VARIAVEIS["nome_arquivo"]}.txt'
+        arquivo_caminho.touch()
         #Bloco para criar o arquico concatenando a data do dia com o nome do arquivo
-        arquivo_log = VARIAVEIS["local_arquivo"] + VARIAVEIS["nome_arquivo"]
-        with open(f'{arquivo_log}.txt','a',encoding="utf-8") as arquivo:
+        with open(arquivo_caminho,'a',encoding="utf-8") as arquivo:
             arquivo.write(f'====== PESQUISAS DATA {dt.datetime.now().strftime("%d/%m/%Y")} ======\n')
     except FileNotFoundError as e:
-        print(f'Arquivo ou diretório não encontrado, verifique o caminho {VARIAVEIS["local_arquivo"]}.\nSeguiremos apenas com as pesquisas.')
+        print(f'Arquivo ou diretório não encontrado, verifique o caminho {caminho}.\nSeguiremos apenas com as pesquisas.')
         print()
-    return VARIAVEIS["nome_arquivo"]
+    caminho_arquivo = Path() / caminho / VARIAVEIS["nome_arquivo"]
+    return caminho_arquivo
 
 #Cria a conexao com o site *Necessário estar logado tammbém faz uma rolagem automatica da Pagina
 def driver_edge():
@@ -403,3 +410,4 @@ def definido_diariamente(home_page) ->int:
                 with open("definido_diariamente.txt","w",encoding="utf-8") as arquivo:
                     arquivo.write(str(e))
             break
+

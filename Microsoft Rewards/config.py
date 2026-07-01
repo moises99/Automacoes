@@ -22,15 +22,9 @@ XPATH_PAGINA = {
     "titulo_definidos_diariamente"          : "//p[@class='line-clamp-3 text-globalBody2Strong']"
     }
 
-CHAVE_ID = {
-    "chave" : secrets.token_hex(26).upper()
-    }
-
-
 VARIAVEIS = {
     "data_hora"             : dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S"),
-    "local_arquivo"         : 'D:\\py\\Projeto Automacao\\logs_pesquisa\\',
-    "nome_arquivo"          : f'manchete_{dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}',
+    "nome_arquivo"          : f'destaques_{dt.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}',
     "ver_processo"          : False,
     "controle_pontos"       : 0,
     "controle_tres_pontos"  : 0,
