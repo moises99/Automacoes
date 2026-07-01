@@ -69,7 +69,7 @@ def func_principal():
             print(f'Arquivo ou diretório não encontrado, verifique o caminho {arquivo_log}.\nSeguiremos com as pesquisas')
             print()
         driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}')
-        load(0.07,f'Notícia {pos+1}: [link=https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}]{titulo}[/link]')
+        load(0.01,f'Notícia {pos+1}: [link=https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={CHAVE_ID["chave"]}]{titulo}[/link]')
         #Bloco responsável por verificar se o limite de pontos.
         VARIAVEIS["controle_pontos"] +=3
         if VARIAVEIS["controle_pontos"] == 60:
@@ -208,7 +208,6 @@ def load(tempo = 0.02,texto ="[green]Processando...", visibilidade=True):
             time.sleep(tempo)
 #Mostra um resumo das atividas após concluir a rotina
 def resumo(nivel_membro="N/A",pontos_membro="N/A",pontos="N/A",pontos_atualizados="N/A",pontos_reivindicados="N/A",total_pesquisas="N/A",definidos_diariamente="N/A",cont_ganhando="N/A"):
-    pontos_atualizados = pontos_atualizados[0]
     table = Table(expand=True)
     table.add_column("Nivel de Membro", justify="center")
     table.add_column("Pontos de Membro", justify="center")
@@ -404,3 +403,5 @@ def definido_diariamente(home_page) ->int:
                 with open("definido_diariamente.txt","w",encoding="utf-8") as arquivo:
                     arquivo.write(str(e))
             break
+
+print(resumo())
