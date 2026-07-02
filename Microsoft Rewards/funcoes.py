@@ -413,8 +413,10 @@ def definido_diariamente(home_page) ->int:
                         progresso.update(tarefa_definido_diariamente,advance=25,description=f'[yellow]Fazendo o "Definido Diariamente: {titulo_definidos_diariamente_text}"...')
                         time.sleep(5)
                     progresso.update(tarefa_definido_diariamente,advance=10,description="[green]Concluido",visible=False)
-                    driver.quit()
-                    return pontos_definidos_diariamente if pontos_definidos_diariamente  > 0 else 0
+                driver.quit()
+                if pontos_definidos_diariamente < 30:
+                    print(texto_personalizado('Talvez tenha pontos a serem feitos, verifique sua pagina de Desafios Diarios'))
+                return pontos_definidos_diariamente if pontos_definidos_diariamente  > 0 else 0
             except Exception as e:
                 print(texto_personalizado(f'Não foi possivel fazer o "Definido Diariamente"'))
                 arquivo_txt = gera_txt('log_error',nome_arquivo='definido_diariamente.txt')

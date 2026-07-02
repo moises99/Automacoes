@@ -1,5 +1,4 @@
 #Definição das variaveis globais
-import secrets
 import datetime as dt
 
 
