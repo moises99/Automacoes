@@ -31,7 +31,6 @@ def main():
 
 
 if __name__ == "__main__":
-    #print(texto_personalizado('Inicializando...'.upper()))
     print(texto_personalizado(' Sistema de Pesquisas Automaticas Mircrosoft Rewards ').upper())
     load(0.01,texto="    Inicializando     ".upper())
     main()
