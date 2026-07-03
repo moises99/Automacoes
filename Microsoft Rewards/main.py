@@ -1,5 +1,7 @@
-from funcoes import func_principal,load,definido_diariamente,continue_ganhando,reivindicar,LINKS
+from funcoes import func_principal,load,definido_diariamente,continue_ganhando,reivindicar,LINKS,VARIAVEIS
 from personalizacao import texto_personalizado
+from rich import print
+
 
 
 def main():
@@ -23,12 +25,12 @@ def main():
             case 4:
                 reivindicar(LINKS["home_page"])
             case 5:
+                print(VARIAVEIS["descricao"])
                 print(texto_personalizado('Finalizando...').upper())
                 load(0.01,texto="         ",)
                 break
             case _:
                 continue
-
 
 if __name__ == "__main__":
     print(texto_personalizado(' Sistema de Pesquisas Automaticas Mircrosoft Rewards ').upper())

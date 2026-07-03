@@ -11,7 +11,7 @@ from rich.table import Table
 from rich.panel import Panel
 from pathlib import Path
 import secrets
-
+teste_var = 100
 #Responsável por executar as funcionalidades da página
 def func_principal():
     '''
@@ -97,10 +97,10 @@ def func_principal():
         reivindicar(LINKS["home_page"])
     VARIAVEIS["c_ganhando"] = continue_ganhando(LINKS["home_page"])
     VARIAVEIS["d_diariamente"] = definido_diariamente(LINKS["home_page"])
-    pontos_atualizados = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
-    print(texto_personalizado(f' Você atingiu o máximo de pontos ').upper().center(120))
+    pontos_totais = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
     try:                
-        print(resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais[0],pontos_atualizados[0],pontos_atualizados[1],pos,VARIAVEIS["d_diariamente"],VARIAVEIS["c_ganhando"]))
+       VARIAVEIS["descricao"] = resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais[0],pontos_totais[0],pontos_atualizados[1],pos,VARIAVEIS["d_diariamente"],VARIAVEIS["c_ganhando"])
+       print(VARIAVEIS["descricao"])
     except Exception as e:
         print(f'Erro: {e}')
     print(texto_personalizado(f'ARQUIVO SALVO EM {destaques_txt}'))
