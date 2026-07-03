@@ -25,8 +25,8 @@ def main():
             case 4:
                 reivindicar(LINKS["home_page"])
             case 5:
-                print(VARIAVEIS["descricao"])
                 print(texto_personalizado('Finalizando...').upper())
+                print(VARIAVEIS["descricao"])
                 load(0.01,texto="         ",)
                 break
             case _:

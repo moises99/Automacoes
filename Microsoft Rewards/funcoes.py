@@ -11,7 +11,8 @@ from rich.table import Table
 from rich.panel import Panel
 from pathlib import Path
 import secrets
-teste_var = 100
+
+
 #Responsável por executar as funcionalidades da página
 def func_principal():
     '''

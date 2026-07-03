@@ -1,5 +1,8 @@
-#Definição das variaveis globais
+#Definição das variaveis global
 import datetime as dt
+
+
+
 
 
 LINKS = {
@@ -30,4 +33,5 @@ VARIAVEIS = {
     "c_ganhando"            : 0,
     "d_diariamente"         : 0,
     "total_reivindicar"     : 0,
+    "descricao"             : "",
     }
