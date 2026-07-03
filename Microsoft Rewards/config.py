@@ -1,10 +1,6 @@
 #Definição das variaveis global
 import datetime as dt
 
-
-
-
-
 LINKS = {
     "home_page"         : "https://rewards.bing.com/dashboard",
     "msn_news"          : "https://www.bing.com/news/search?q=Brasil&nvaug=%5bNewsVertical+Category%3d%22rt_Brazil%22%5d&FORM=NSBABR",
