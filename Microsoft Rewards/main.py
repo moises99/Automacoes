@@ -1,4 +1,4 @@
-from funcoes import func_principal,load,definido_diariamente,continue_ganhando,reivindicar,LINKS,VARIAVEIS
+from funcoes import func_principal,load,definido_diariamente,continue_ganhando,reivindicar,LINKS,VARIAVEIS,resumo
 from personalizacao import texto_personalizado
 from rich import print
 
@@ -19,15 +19,14 @@ def main():
             case 1:
                 func_principal()
             case 2:
-                definido_diariamente(LINKS["home_page"])
+                de = definido_diariamente(LINKS["home_page"])
+                print(resumo(definidos_diariamente = de))
             case 3:
                 continue_ganhando(LINKS["home_page"])
             case 4:
                 reivindicar(LINKS["home_page"])
             case 5:
                 print(texto_personalizado('Finalizando...').upper())
-                print(VARIAVEIS["descricao"])
-                load(0.01,texto="         ",)
                 break
             case _:
                 continue

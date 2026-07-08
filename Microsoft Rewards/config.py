@@ -17,7 +17,10 @@ XPATH_PAGINA = {
     "ponto_continue_ganhando"               : "//span[@class='font-semibold']",
     "titulos_continue_ganhando"             : "//p[@class='line-clamp-3 text-globalBody2Strong']",
     "click_definidos_diariamente"           : "//a[@class='group/ctrl cursor-pointer data-disabled:cursor-default outline-0 outline-ctrlFocusOuterStroke focus-visible:outline-ctrlFocusOuterStrokeWidth rounded-cornerCardDefault']",
-    "titulo_definidos_diariamente"          : "//p[@class='line-clamp-3 text-globalBody2Strong']"
+    "titulo_definidos_diariamente"          : "//p[@class='line-clamp-3 text-globalBody2Strong']",
+    "pontos_definidos_diariamente"          : "//p[@class='text-metadata leading-none text-statusInformativeTintFg']",
+    "concluidos_definidos_diariamente"      : "//div[@class='line-clamp-2 pb-0.5 text-end text-metadata wrap-anywhere text-fgCtrlNeutralSecondaryRest']",
+    "meus_pontos_reivindicar"               : "//p[@class='grow text-pageHeader']",
     }
 
 VARIAVEIS = {
@@ -29,5 +32,7 @@ VARIAVEIS = {
     "c_ganhando"            : 0,
     "d_diariamente"         : 0,
     "total_reivindicar"     : 0,
-    "descricao"             : "",
     }
+
+
+

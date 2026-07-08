@@ -11,6 +11,7 @@ from rich.table import Table
 from rich.panel import Panel
 from pathlib import Path
 import secrets
+import random 
 
 
 #Responsável por executar as funcionalidades da página
@@ -94,13 +95,14 @@ def func_principal():
                 print(texto_personalizado(f'Tentativa: {VARIAVEIS["controle_tres_pontos"]}/3'))
                 if VARIAVEIS["controle_tres_pontos"] == 3:
                     break
-    if pontos_atualizados[2]:
-        reivindicar(LINKS["home_page"])
+    meus_pontos_reivindicados = reivindicar(LINKS["home_page"]) if pontos_atualizados[2] else 0
     VARIAVEIS["c_ganhando"] = continue_ganhando(LINKS["home_page"])
     VARIAVEIS["d_diariamente"] = definido_diariamente(LINKS["home_page"])
+    if VARIAVEIS["d_diariamente"] == 0 :
+        print(texto_personalizado('Sem defafios para fazer'.upper()))
     pontos_totais = verifica_pontos(LINKS['home_page'] , XPATH_PAGINA["pontos"])
     try:                
-       VARIAVEIS["descricao"] = resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais[0],pontos_totais[0],pontos_atualizados[1],pos,VARIAVEIS["d_diariamente"],VARIAVEIS["c_ganhando"])
+       VARIAVEIS["descricao"] = resumo(nome_nivel_membro,pontos_nivel_membro,pontos_atuais[0],pontos_totais[0],meus_pontos_reivindicados,pos +1,VARIAVEIS["d_diariamente"],VARIAVEIS["c_ganhando"])
        print(VARIAVEIS["descricao"])
     except Exception as e:
         print(f'Erro: {e}')
@@ -165,7 +167,7 @@ def gera_txt(pasta ='log',cabecaclho = VARIAVEIS["data_hora"], nome_arquivo = 'l
     nome_caminho_arquivo = Path() / caminho / nome_arquivo
     return nome_caminho_arquivo
 
-#Cria a conexao com o site *Necessário estar logado tammbém faz uma rolagem automatica da Pagina
+#Cria a conexao com o site *Necessário estar logado 
 def driver_edge():
     '''
     Abre uma pagina web recebendo o link atravrés da variavel LINKS["msn_news"].
@@ -178,7 +180,7 @@ def driver_edge():
     driver = webdriver.Edge(options=driver_edge)
     driver.get(LINKS["msn_news"])
     for _ in track(range(10),description="[yellow]Aguarde...",transient=True):
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") #Faz uma rolagem automatica da Pagina
         time.sleep(1)
     return driver
 
@@ -189,21 +191,20 @@ def coleta_noticias():
     '''
     try:
         driver = driver_edge()
-        titulo_noticia = []
-        lista_noticia_formatada = []
-        titulos_noticia = driver.find_elements(By.XPATH,"//a[@class='title']")
-        for titulos in track(titulos_noticia, description=" [yellow]Gerando lista... ",transient=True):
-            manchete = f"{titulos.text}"
-            if len(manchete) > 5:
-                titulo_noticia.append(manchete)
-                noticias_formatadas = str(titulos.text).replace(' ','%20').replace(',','%2C').replace(':','%3A').replace(';','%3B').replace("'","%27")
-                lista_noticia_formatada.append(noticias_formatadas)
+        destaque = driver.find_elements(By.XPATH,"//a[@class='title']")
+        titulo_noticia = [t.text for t in destaque]
         driver.quit()
-        return titulo_noticia,lista_noticia_formatada
+        random.shuffle(titulo_noticia)
+        link_noticia_formatada = []
+        for titulos in track(titulo_noticia, description=" [yellow]Gerando lista... ",transient=True):
+            if len(titulos) > 5:
+                link_formatado = titulos.replace(' ','%20').replace(',','%2C').replace(':','%3A').replace(';','%3B').replace("'","%27")
+                link_noticia_formatada.append(link_formatado)
+        return titulo_noticia,link_noticia_formatada
     except Exception as e:
         print(f'Ocorreu um erro.\n {e}')
         return 1
-        
+
 def load(tempo = 0.02,texto ="[green]Processando...", visibilidade=True):
     '''
     Função simples apenas para gerar uma barra de progresso.
@@ -215,7 +216,7 @@ def load(tempo = 0.02,texto ="[green]Processando...", visibilidade=True):
             progress.update(task1, advance=1)
             time.sleep(tempo)
 
-#Mostra um resumo das atividas após concluir a rotina
+#Mostra um resumo das atividades após concluir a rotina
 def resumo(nivel_membro="N/A",pontos_membro="N/A",pontos="N/A",pontos_atualizados="N/A",pontos_reivindicados="N/A",total_pesquisas="N/A",definidos_diariamente="N/A",cont_ganhando="N/A"):
     table = Table(expand=True)
     table.add_column("Nivel de Membro", justify="center")
@@ -272,7 +273,7 @@ def verifica_pontos(link_pagina , xpath_pontos):
             break
 
 #Reivindica os pontos dosponiveis
-def reivindicar(home_page):
+def reivindicar(home_page) -> int:
     '''
     Reivindica os pontos dosponiveis
     '''
@@ -288,17 +289,21 @@ def reivindicar(home_page):
                 driver = webdriver.Edge(options=driver_edge)
                 driver.get(home_page)
                 clicar_reivindicar = driver.find_element(By.XPATH,XPATH_PAGINA["click_reivindicar"])
-                time.sleep(5)
-                driver.implicitly_wait(5)
+                driver.implicitly_wait(15)
                 clicar_reivindicar.click()
-                time.sleep(5)
-                clicar_ganhe_mais = driver.find_element(By.XPATH,XPATH_PAGINA['ganhar_mais_pontos_reivindicar'])
-                driver.implicitly_wait(5)
-                time.sleep(5)
-                clicar_ganhe_mais.click()
-                progresso.update(tarefa_reivindicar,advance=95,description="[green]Pontos reivindicados")
+                driver.implicitly_wait(15)
+                meus_pontos_reivindicar = int(driver.find_element(By.XPATH,XPATH_PAGINA["meus_pontos_reivindicar"]).text)
+                if meus_pontos_reivindicar > 0:
+                    driver.implicitly_wait(15)
+                    clicar_ganhe_mais = driver.find_element(By.XPATH,XPATH_PAGINA['ganhar_mais_pontos_reivindicar'])
+                    driver.implicitly_wait(5)
+                    clicar_ganhe_mais.click()
+                    progresso.update(tarefa_reivindicar,advance=95,description="[green]Pontos reivindicados")
+                else:
+                    progresso.update(tarefa_reivindicar,advance=95,description="[purple]Sem pontos para reivindicar")
                 driver.quit()
                 break
+        return meus_pontos_reivindicar if meus_pontos_reivindicar > 0 else 0
     except Exception as e:
         print(texto_personalizado(f"Não foi possivel reivindicar os pontos"))
         arquivo_txt = gera_txt('log_error',nome_arquivo='reivindicar.txt')
@@ -307,6 +312,7 @@ def reivindicar(home_page):
             arquivo.write("\n")
             arquivo.write(str(e))
         print(texto_personalizado(f'Verifique o arquivo: {arquivo_txt}'))
+        driver.quit()
 
 #Faz atividades "Continue Ganhando"
 def continue_ganhando(link_home)->int:
@@ -333,7 +339,7 @@ def continue_ganhando(link_home)->int:
                 time.sleep(1)
             try:
                 titulos_continue_ganhando = driver.find_elements(By.XPATH,XPATH_PAGINA["titulos_continue_ganhando"])[5:]
-                click_continue_ganhando = driver.find_elements(By.XPATH,XPATH_PAGINA['click_continue_ganhando'])[3:]
+                click_continue_ganhando = driver.find_elements(By.XPATH,XPATH_PAGINA['click_continue_ganhando'])[2:]
                 if len(click_continue_ganhando) > 0:
                     for p,c in enumerate(track(click_continue_ganhando,description='[purple]Clicando...',transient=True)):
                         titulos_continue_ganhando_text = titulos_continue_ganhando[p].text.upper()
@@ -356,7 +362,7 @@ def continue_ganhando(link_home)->int:
                     driver.quit()
                     return ponto_continue_ganhando
                 else:
-                    print(texto_personalizado('Sem elementos para clicar'))
+                    progresso.update(tarefa_continue_ganhando,advance=80,description='[purple]Não há tarefas disponiveis!')
                     driver.quit()
                     return 0
             except Exception as e:
@@ -370,7 +376,7 @@ def continue_ganhando(link_home)->int:
             break
 
 #Faz atividades "Desafios Diarios"
-def definido_diariamente(home_page) ->int:
+def definido_diariamente(home_page) ->int: 
     '''
     Desafios diarios [EM TESTES]
     '''
@@ -387,37 +393,37 @@ def definido_diariamente(home_page) ->int:
                     driver_edge.add_argument("--headless=new")
                 driver = webdriver.Edge(options=driver_edge)
                 driver.get(home_page)
-                driver.implicitly_wait(20)
+                driver.implicitly_wait(5)
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                for c in track(range(10),description="[yellow]Aguarde...",transient=True):
-                    time.sleep(1)
+                time.sleep(1)
                 titulo_definidos_diariamente = driver.find_elements(By.XPATH,XPATH_PAGINA["titulo_definidos_diariamente"])
+                pontos_definidos_diariamente = driver.find_elements(By.XPATH,XPATH_PAGINA["pontos_definidos_diariamente"])
+                pontos_definidos_diariamente_int = [int(p.text[1:]) for p in pontos_definidos_diariamente]
                 click_definidos_diariamente = driver.find_elements(By.XPATH,XPATH_PAGINA["click_definidos_diariamente"])[2:5]
-                progresso.update(tarefa_definido_diariamente,advance=10,description='[yellow]Verificando: "Desafios diários..."')
-                pontos_definidos_diariamente = 0
-                for p,c in enumerate(track(click_definidos_diariamente,description="[purple]Clicando...",transient=True,total=len(click_definidos_diariamente))):
+                progresso.update(tarefa_definido_diariamente,advance=10,description='[yellow]Verificando: "Desafios diários..."')  
+                total_definidos_diariamente = 0
+                for p,c in enumerate(track(click_definidos_diariamente[:len(pontos_definidos_diariamente_int)],description="[purple]Clicando...",transient=True,total=len(click_definidos_diariamente))):
                     titulo_definidos_diariamente_text = titulo_definidos_diariamente[p].text.upper()
                     try:
-                        c.click()
-                        pontos_definidos_diariamente += 10
-                        print(texto_personalizado(f'{titulo_definidos_diariamente_text} [OK]'))
+                        if len(pontos_definidos_diariamente_int) > 0:
+                            c.click()
+                            total_definidos_diariamente += pontos_definidos_diariamente_int[p]
+                            print(texto_personalizado(f'{titulo_definidos_diariamente_text} + {pontos_definidos_diariamente_int[p]} [CONCLUÍDO]'))
                     except Exception as e:
                         print(texto_personalizado(f'A tarefa: "{titulo_definidos_diariamente_text}" deve ser feita manualmente'))
-                        arquivo_txt = gera_txt('log_error',nome_arquivo='definidos_diariamente.txt')
+                        arquivo_txt = gera_txt('log_error',nome_arquivo='definido_diariamente.txt')
                         with open(arquivo_txt,'a',encoding="utf-8") as arquivo:
                             arquivo.write(f'{VARIAVEIS["data_hora"]}\n')
-                            arquivo.write('definidos_diariamente')
+                            arquivo.write('definido_diariamente')
                             arquivo.write("\n")
                             arquivo.write(str(e))
                         print(texto_personalizado(f'Verifique o arquivo: {arquivo_txt}'))
                     finally:
                         progresso.update(tarefa_definido_diariamente,advance=25,description=f'[yellow]Fazendo o "Definido Diariamente: {titulo_definidos_diariamente_text}"...')
-                        time.sleep(5)
+                        time.sleep(2)
                     progresso.update(tarefa_definido_diariamente,advance=10,description="[green]Concluido",visible=False)
                 driver.quit()
-                if pontos_definidos_diariamente < 30:
-                    print(texto_personalizado('Talvez tenha pontos a serem feitos, verifique sua pagina de Desafios Diarios'))
-                return pontos_definidos_diariamente if pontos_definidos_diariamente  > 0 else 0
+                return total_definidos_diariamente if total_definidos_diariamente  > 0 else 0
             except Exception as e:
                 print(texto_personalizado(f'Não foi possivel fazer o "Definido Diariamente"'))
                 arquivo_txt = gera_txt('log_error',nome_arquivo='definido_diariamente.txt')
