@@ -1,6 +1,8 @@
 from config import LINKS,XPATH_PAGINA,VARIAVEIS
 from personalizacao import texto_personalizado
 import datetime as dt
+from bs4 import BeautifulSoup
+import requests
 import time
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options
@@ -15,6 +17,7 @@ import random
 import sqlite3
 
 ID_PESQUISA = secrets.token_hex(6).upper()
+
 #Responsável por executar as funcionalidades da página
 def func_principal():
     '''
@@ -40,12 +43,12 @@ def func_principal():
                 #Valida a quantidade de noticias
                 tentativa = 0
                 while True:
-                    noticias_func = coleta_noticias()
-                    if len (noticias_func[0]) > 20:
+                    noticias = coleta_noticias()
+                    if len (noticias['titulo_noticia']) > 20:
                         break
                     else:
                         tentativa +=1
-                        print(texto_personalizado(f' Quantidade de noticias insulficiente. Noticias encotradas: {len(noticias_func[0])}'.upper()))
+                        print(texto_personalizado(f' Quantidade de noticias insulficiente. Noticias encotradas: {len(noticias['titulo_noticia'])}'.upper()))
                         print(texto_personalizado(f' Necessários ao menos 20 noticias '.upper()))
                         progresso.update(tarefa,advance=2,description="[yellow]Realizando uma nova tentantiva")
                         print(texto_personalizado(f' Tentantiva: {tentativa}/3 '.upper()))
@@ -54,7 +57,7 @@ def func_principal():
                             exit()
                 progresso.update(tarefa,advance=5,description="[green]Concluindo",visible=False)
                 meu_maximo_de_pontos = pontos_atuais[0] + pontos_nivel_membro
-                print(texto_personalizado(f' Total de {len(noticias_func[0])} notícias'.upper()))
+                print(texto_personalizado(f' Total de {len(noticias['titulo_noticia'])} notícias'.upper()))
                 break
         print(texto_personalizado(' Iniciando pesquisas '.upper()))
         driver_edge = Options()
@@ -68,13 +71,13 @@ def func_principal():
     conexao = sqlite3.connect('minhas_pesquisas.db')
     cursor = conexao.cursor()
     cursor.execute('CREATE TABLE IF NOT EXISTS noticias_links (id INTEGER PRIMARY KEY AUTOINCREMENT,titulo TEXT,link TEXT,id_pesquisa TEXT)')
-    for pos,titulo in track(enumerate(noticias_func[0]),description="[purple]Pesquisando...",transient=True):
+    for pos,titulo in track(enumerate(noticias['titulo_noticia']),description="[purple]Pesquisando...",transient=True):
         TOKEN_ID = secrets.token_hex(26).upper()
         try:
             with open(destaques_txt,'a',encoding="utf-8") as arquivo:
-                arquivo.writelines(f'Destaque {pos+1}: {titulo}\n-Link: https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}\n\n')
+                arquivo.writelines(f'Destaque {pos+1}: {titulo}\n-Link: https://www.bing.com/search?q={noticias['link_noticia_formatada'][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias['link_noticia_formatada'][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}\n\n')
                 print()
-            meu_link = f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}'
+            meu_link = f'https://www.bing.com/search?q={noticias['link_noticia_formatada'][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias['link_noticia_formatada'][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}'
             try:
                 cursor.execute(f'INSERT INTO noticias_links (titulo,link,id_pesquisa) VALUES ("{titulo}","{meu_link}","{ID_PESQUISA}")')
                 conexao.commit()
@@ -83,8 +86,8 @@ def func_principal():
         except FileNotFoundError:
             print(f'Arquivo ou diretório não encontrado, verifique o caminho {destaques_txt}.\nSeguiremos com as pesquisas')
             print()
-        driver.get(f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}')
-        load(0.07,f'Notícia {pos+1}: [link=https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}]{titulo}[/link]')
+        driver.get(f'https://www.bing.com/search?q={noticias['link_noticia_formatada'][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias['link_noticia_formatada'][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}')
+        load(0.07,f'Notícia {pos+1}: [link=https://www.bing.com/search?q={noticias['link_noticia_formatada'][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias['link_noticia_formatada'][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}]{titulo}[/link]')
         #Bloco responsável por verificar se o limite de pontos.
         VARIAVEIS["controle_pontos"] +=3
         if VARIAVEIS["controle_pontos"] == 60:
@@ -178,56 +181,46 @@ def gera_txt(pasta ='log',cabecaclho = VARIAVEIS["data_hora"], nome_arquivo = 'l
     nome_caminho_arquivo = Path() / caminho / nome_arquivo
     return nome_caminho_arquivo
 
-#Cria a conexao com o site *Necessário estar logado 
-def driver_edge():
-    '''
-    Abre uma pagina web recebendo o link atravrés da variavel LINKS["msn_news"].
-    Faz uma rolagem automatica de 2 em 2 segundo.
-    E retorna a pagina aberta.
-    '''
-    driver_edge = Options()
-    if not VARIAVEIS["ver_processo"]:
-        driver_edge.add_argument("--headless=new")
-    driver = webdriver.Edge(options=driver_edge)
-    driver.get(LINKS["msn_news"])
-    for _ in track(range(10),description="[yellow]Aguarde...",transient=True):
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") #Faz uma rolagem automatica da Pagina
-        time.sleep(1)
-    return driver
-
-#Coleta o título das noticias
 def coleta_noticias():
     '''
     Coleta as manchetes da pagina.
     '''
-    try:
-        driver = driver_edge()
-        destaque = driver.find_elements(By.XPATH,"//a[@class='title']")
-        titulo_noticia = [t.text for t in destaque] 
-        driver.quit()
-        random.shuffle(titulo_noticia)
-        link_noticia_formatada = []
-        
-
-        conexao = sqlite3.connect('minhas_pesquisas.db')
-        cursor = conexao.cursor()
-        cursor.execute('CREATE TABLE IF NOT EXISTS noticias_links (id INTEGER PRIMARY KEY AUTOINCREMENT,titulo TEXT,link TEXT,id_pesquisa TEXT)')
-        for titulos in track(titulo_noticia, description=" [yellow]Gerando lista... ",transient=True):
-            if len(titulos) > 5:
-                link_formatado = titulos.replace(' ','%20').replace(',','%2C').replace(':','%3A').replace(';','%3B').replace("'","%27")
-                link_noticia_formatada.append(link_formatado)
-        for titulo in titulo_noticia:
-            try:
-                cursor.execute(f'INSERT INTO noticias (titulo,id_pesquisa) VALUES ("{titulo}","{ID_PESQUISA}") ')
-            except:
-                continue
-        conexao.commit()
-        conexao.close()
-        return titulo_noticia,link_noticia_formatada
-    except Exception as e:
-        print(f'Ocorreu um erro.\n {e}')
-        return 1
-
+    titulo_noticia = []
+    link_noticia_formatada = []
+    for index in track(range(8,12),description=" [yellow]Realizando as requisições... ",transient=True):
+        try:
+            url = (f'https://www.bing.com/news/feed/infinitescrollajax?fcvid=11AB92FC6C326685139485E56D1D67F0&PageIndex={index}&NewsBrowseDataVersion=mkt_dataversion-4-chieeeap002edf4_v1.0&InfiniteScroll=1')
+            response = requests.get(url)
+            if response.status_code == 200:
+                pagina = BeautifulSoup(response.text, "html.parser")
+                manchetes = pagina.find_all("a", class_="title")
+                for manchete in manchetes:
+                    manchetetxt = manchete.get_text()
+                    if manchetetxt not in titulo_noticia:
+                        titulo_noticia.append(manchetetxt)
+            else:
+                print('STATUS DA REQUISIÇÃO : ',response.status_code)
+        except Exception as e:
+            print(e)
+    random.shuffle(titulo_noticia)
+    conexao = sqlite3.connect('minhas_pesquisas.db')
+    cursor = conexao.cursor()
+    cursor.execute('CREATE TABLE IF NOT EXISTS noticias (id INTEGER PRIMARY KEY AUTOINCREMENT,titulo TEXT,id_pesquisa TEXT)')
+    for titulos in track(titulo_noticia, description=" [yellow]Gerando links... ",transient=True):
+        if len(titulos) > 5:
+            link_formatado = titulos.replace(' ','%20').replace(',','%2C').replace(':','%3A').replace(';','%3B').replace("'","%27")
+            link_noticia_formatada.append(link_formatado)
+    for titulo in track(titulo_noticia,description=" [yellow]Salvando dados... ",transient=True):
+        try:
+            cursor.execute(f'INSERT INTO noticias (titulo,id_pesquisa) VALUES ("{titulo}","{ID_PESQUISA}") ')
+        except:
+            continue
+    conexao.commit()
+    conexao.close()
+    return {'titulo_noticia':titulo_noticia,
+            'link_noticia_formatada':link_noticia_formatada
+            }
+coleta_noticias()
 def load(tempo = 0.02,texto ="[green]Processando...", visibilidade=True):
     '''
     Função simples apenas para gerar uma barra de progresso.
@@ -271,11 +264,10 @@ def verifica_pontos(link_pagina , xpath_pontos):
     xpath_pontos: o caminho do xpath dos pontos
     '''
     with Progress() as progresso:
-        #ID_PESQUISA = secrets.token_hex(6).upper()
         while True:
             tarefa_pontos = progresso.add_task(description='[yellow]Verificando pontos...',transient=True)
             try:
-                #Abre navegador em segundo plano e recebe os parametros da função
+                #Abre o navegador em segundo plano e recebe os parametros da função
                 driver_segundo_plano = Options()
                 if not VARIAVEIS["ver_processo"]:
                     driver_segundo_plano.add_argument("--headless=new")
