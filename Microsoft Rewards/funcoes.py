@@ -15,7 +15,7 @@ from pathlib import Path
 import secrets
 import random
 import sqlite3
-
+import threading
 ID_PESQUISA = secrets.token_hex(6).upper()
 
 #Responsável por executar as funcionalidades da página
@@ -220,7 +220,7 @@ def coleta_noticias():
     return {'titulo_noticia':titulo_noticia,
             'link_noticia_formatada':link_noticia_formatada
             }
-coleta_noticias()
+
 def load(tempo = 0.02,texto ="[green]Processando...", visibilidade=True):
     '''
     Função simples apenas para gerar uma barra de progresso.
