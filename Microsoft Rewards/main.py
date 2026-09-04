@@ -5,6 +5,7 @@ from rich import print
 
 
 def main():
+    #func_principal()
     listopc =['Rotina Completa','Definidos Diariamente','Continue Ganhando','Reivindicar Pontos','Sair']
 
     while True:
@@ -19,8 +20,7 @@ def main():
             case 1:
                 func_principal()
             case 2:
-                de = definido_diariamente(LINKS["home_page"])
-                print(resumo(definidos_diariamente = de))
+                definido_diariamente(LINKS["home_page"])
             case 3:
                 continue_ganhando(LINKS["home_page"])
             case 4:

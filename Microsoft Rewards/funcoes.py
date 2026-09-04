@@ -11,9 +11,10 @@ from rich.table import Table
 from rich.panel import Panel
 from pathlib import Path
 import secrets
-import random 
+import random
+import sqlite3
 
-
+ID_PESQUISA = secrets.token_hex(6).upper()
 #Responsável por executar as funcionalidades da página
 def func_principal():
     '''
@@ -64,12 +65,21 @@ def func_principal():
         print(f'Erro: {e}')
         exit()
     #Bloco responsável por executar as pesquisar e gravar as informações no arquivo de texto
+    conexao = sqlite3.connect('minhas_pesquisas.db')
+    cursor = conexao.cursor()
+    cursor.execute('CREATE TABLE IF NOT EXISTS noticias_links (id INTEGER PRIMARY KEY AUTOINCREMENT,titulo TEXT,link TEXT,id_pesquisa TEXT)')
     for pos,titulo in track(enumerate(noticias_func[0]),description="[purple]Pesquisando...",transient=True):
         TOKEN_ID = secrets.token_hex(26).upper()
         try:
             with open(destaques_txt,'a',encoding="utf-8") as arquivo:
                 arquivo.writelines(f'Destaque {pos+1}: {titulo}\n-Link: https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}\n\n')
                 print()
+            meu_link = f'https://www.bing.com/search?q={noticias_func[1][pos]}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={noticias_func[1][pos]}&sc=15-7&sk=&cvid={TOKEN_ID}'
+            try:
+                cursor.execute(f'INSERT INTO noticias_links (titulo,link,id_pesquisa) VALUES ("{titulo}","{meu_link}","{ID_PESQUISA}")')
+                conexao.commit()
+            except:
+                continue    
         except FileNotFoundError:
             print(f'Arquivo ou diretório não encontrado, verifique o caminho {destaques_txt}.\nSeguiremos com as pesquisas')
             print()
@@ -95,6 +105,7 @@ def func_principal():
                 print(texto_personalizado(f'Tentativa: {VARIAVEIS["controle_tres_pontos"]}/3'))
                 if VARIAVEIS["controle_tres_pontos"] == 3:
                     break
+    conexao.close()
     meus_pontos_reivindicados = reivindicar(LINKS["home_page"]) if pontos_atualizados[2] else 0
     VARIAVEIS["c_ganhando"] = continue_ganhando(LINKS["home_page"])
     VARIAVEIS["d_diariamente"] = definido_diariamente(LINKS["home_page"])
@@ -192,14 +203,26 @@ def coleta_noticias():
     try:
         driver = driver_edge()
         destaque = driver.find_elements(By.XPATH,"//a[@class='title']")
-        titulo_noticia = [t.text for t in destaque]
+        titulo_noticia = [t.text for t in destaque] 
         driver.quit()
         random.shuffle(titulo_noticia)
         link_noticia_formatada = []
+        
+
+        conexao = sqlite3.connect('minhas_pesquisas.db')
+        cursor = conexao.cursor()
+        cursor.execute('CREATE TABLE IF NOT EXISTS noticias_links (id INTEGER PRIMARY KEY AUTOINCREMENT,titulo TEXT,link TEXT,id_pesquisa TEXT)')
         for titulos in track(titulo_noticia, description=" [yellow]Gerando lista... ",transient=True):
             if len(titulos) > 5:
                 link_formatado = titulos.replace(' ','%20').replace(',','%2C').replace(':','%3A').replace(';','%3B').replace("'","%27")
                 link_noticia_formatada.append(link_formatado)
+        for titulo in titulo_noticia:
+            try:
+                cursor.execute(f'INSERT INTO noticias (titulo,id_pesquisa) VALUES ("{titulo}","{ID_PESQUISA}") ')
+            except:
+                continue
+        conexao.commit()
+        conexao.close()
         return titulo_noticia,link_noticia_formatada
     except Exception as e:
         print(f'Ocorreu um erro.\n {e}')
@@ -229,8 +252,16 @@ def resumo(nivel_membro="N/A",pontos_membro="N/A",pontos="N/A",pontos_atualizado
     table.add_column("Continue Ganhando", justify="center")
     table.add_row(str(nivel_membro),str(pontos_membro),str(pontos),str(pontos_atualizados),str(pontos_reivindicados),str(total_pesquisas),str(definidos_diariamente),str(cont_ganhando))
     painel = Panel(table,title=texto_personalizado("Resumo").upper(),width=120,subtitle="Volte amanhão para ganhar novos pontos",style="bold")
+    conexao = sqlite3.connect('minhas_pesquisas.db')
+    cursor = conexao.cursor()
+    cursor.execute('CREATE TABLE IF NOT EXISTS pontos (id INTEGER PRIMARY KEY AUTOINCREMENT,nivel_membro TEXT,pontos_membro INTEGER,pontos_anteriores INTEGER,pontos_atualizados INTEGER,' \
+    'ponto_reivindicados INTEGER,total_pesquisas INTEGER,definidos_diariamente INTEGER,cont_ganhando INTEGER, id_pesquisa TEXT) ')
+    cursor.execute(f'INSERT INTO pontos (nivel_membro,pontos_membro,pontos_anteriores,pontos_atualizados,' \
+    'ponto_reivindicados,total_pesquisas,definidos_diariamente,cont_ganhando, id_pesquisa)' \
+    f' VALUES ("{nivel_membro}","{pontos_membro}","{pontos}","{pontos_atualizados}","{pontos_reivindicados}","{total_pesquisas}","{definidos_diariamente}","{cont_ganhando}","{ID_PESQUISA}")')
+    conexao.commit()
+    conexao.close()
     return painel
-
 #Funcão responsável por coletar os pontos atuais e se há pontos para reivindicar.
 def verifica_pontos(link_pagina , xpath_pontos):
     '''
@@ -240,6 +271,7 @@ def verifica_pontos(link_pagina , xpath_pontos):
     xpath_pontos: o caminho do xpath dos pontos
     '''
     with Progress() as progresso:
+        #ID_PESQUISA = secrets.token_hex(6).upper()
         while True:
             tarefa_pontos = progresso.add_task(description='[yellow]Verificando pontos...',transient=True)
             try:
@@ -291,16 +323,15 @@ def reivindicar(home_page) -> int:
                 clicar_reivindicar = driver.find_element(By.XPATH,XPATH_PAGINA["click_reivindicar"])
                 driver.implicitly_wait(15)
                 clicar_reivindicar.click()
-                driver.implicitly_wait(15)
                 meus_pontos_reivindicar = int(driver.find_element(By.XPATH,XPATH_PAGINA["meus_pontos_reivindicar"]).text)
                 if meus_pontos_reivindicar > 0:
                     driver.implicitly_wait(15)
                     clicar_ganhe_mais = driver.find_element(By.XPATH,XPATH_PAGINA['ganhar_mais_pontos_reivindicar'])
                     driver.implicitly_wait(5)
                     clicar_ganhe_mais.click()
-                    progresso.update(tarefa_reivindicar,advance=95,description="[green]Pontos reivindicados")
+                    progresso.update(tarefa_reivindicar,advance=95,description="[green]Pontos reivindicados",visible=False)
                 else:
-                    progresso.update(tarefa_reivindicar,advance=95,description="[purple]Sem pontos para reivindicar")
+                    progresso.update(tarefa_reivindicar,advance=95,description="[purple]Sem pontos para reivindicar",visible=False)
                 driver.quit()
                 break
         return meus_pontos_reivindicar if meus_pontos_reivindicar > 0 else 0
@@ -339,7 +370,7 @@ def continue_ganhando(link_home)->int:
                 time.sleep(1)
             try:
                 titulos_continue_ganhando = driver.find_elements(By.XPATH,XPATH_PAGINA["titulos_continue_ganhando"])[5:]
-                click_continue_ganhando = driver.find_elements(By.XPATH,XPATH_PAGINA['click_continue_ganhando'])[2:]
+                click_continue_ganhando = driver.find_elements(By.XPATH,XPATH_PAGINA['click_continue_ganhando'])[1:]
                 if len(click_continue_ganhando) > 0:
                     for p,c in enumerate(track(click_continue_ganhando,description='[purple]Clicando...',transient=True)):
                         titulos_continue_ganhando_text = titulos_continue_ganhando[p].text.upper()
@@ -377,6 +408,7 @@ def continue_ganhando(link_home)->int:
 
 #Faz atividades "Desafios Diarios"
 def definido_diariamente(home_page) ->int: 
+
     '''
     Desafios diarios [EM TESTES]
     '''
