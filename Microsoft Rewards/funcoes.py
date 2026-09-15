@@ -15,7 +15,6 @@ from pathlib import Path
 import secrets
 import random
 import sqlite3
-import threading
 ID_PESQUISA = secrets.token_hex(6).upper()
 
 #Responsável por executar as funcionalidades da página
